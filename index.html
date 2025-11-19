@@ -1,0 +1,2413 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圖片處理工具 v11 - 安全版</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        #dropZone {
+            border: 2px dashed #ccc;
+            border-radius: 20px;
+            width: 100%;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #dropZone.dragover {
+            background-color: #e1e1e1;
+        }
+
+        #fileInput,
+        #logoInput {
+            display: none;
+        }
+
+        #status {
+            margin-top: 20px;
+        }
+
+        .mode-buttons {
+            margin-bottom: 20px;
+        }
+
+        .mode-button {
+            margin-right: 10px;
+            padding: 10px 15px;
+            background-color: #ccc;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .mode-button.active {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        #logoPreview {
+            max-width: 100px;
+            max-height: 100px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        #screenshotArrange {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        #fileInput2 {
+            margin-bottom: 10px;
+        }
+
+        #canvasContainer {
+            position: relative;
+            display: inline-block;
+        }
+
+        #canvas {
+            border: 1px solid #000;
+        }
+
+        #imageList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+            justify-content: center;
+        }
+
+        .image-item {
+            width: 150px;
+            border: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: move;
+            position: relative;
+            user-select: none;
+        }
+
+        .image-item img {
+            max-width: 100%;
+            max-height: 150px;
+            object-fit: contain;
+        }
+
+        .image-item.dragging {
+            opacity: 0.5;
+        }
+
+        .image-item.drag-over {
+            border: 2px dashed #000;
+        }
+
+        .delete-button {
+            margin-top: 5px;
+            padding: 2px 5px;
+            background-color: #cc0000;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        #downloadButton {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: none;
+        }
+
+        #editTools {
+            margin-top: 10px;
+        }
+
+        #editTools button,
+        #previewEditTools button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+
+        #editTools button:hover,
+        #previewEditTools button:hover {
+            background-color: #e0e0e0;
+        }
+
+        #editCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: crosshair;
+        }
+
+        #clearAllButton {
+            margin-left: 10px;
+            padding: 5px 10px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* 縮放品質選項樣式 */
+        .quality-control {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .quality-control label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+            color: #495057;
+        }
+
+        .quality-control select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            background-color: white;
+            font-size: 14px;
+        }
+
+        .quality-info {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        .quality-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .badge-ultra {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .badge-high {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .badge-balanced {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .badge-fast {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 id="pageTitle">圖片處理工具 v11 - 安全版 <small style="color: #666; font-size: 0.6em;">(修復線條問題)</small></h1>
+
+    <!-- 縮放品質控制 -->
+    <div class="quality-control">
+        <label for="scalingQuality">🎯 縮放品質選擇：</label>
+        <select id="scalingQuality">
+            <option value="ultra">超高品質 - 多步驟縮放 (無銳化)</option>
+            <option value="high">高品質 - 高品質Canvas縮放</option>
+            <option value="balanced" selected>平衡 - 標準高品質縮放 (預設)</option>
+            <option value="fast">快速 - 與原版相同</option>
+        </select>
+        <div class="quality-info">
+            <div id="qualityDescription">
+                <span class="badge-balanced quality-badge">平衡模式</span>
+                使用高品質Canvas縮放，在品質和速度間取得平衡，已修復線條問題
+            </div>
+        </div>
+    </div>
+
+    <div class="mode-buttons">
+        <button id="cropImageMode" class="mode-button active">圖片裁切</button>
+        <button id="resize320Mode" class="mode-button">修改圖片短邊（320px）</button>
+        <button id="resize1080Mode" class="mode-button">修改圖片長邊（1000px）</button>
+        <button id="addWatermarkMode" class="mode-button">添加浮水印</button>
+        <button id="adaSpecialMode" class="mode-button">電腦王阿達專用</button>
+        <button id="screenshotArrangeMode" class="mode-button">截圖並排</button>
+    </div>
+    <div id="dropZone">
+        <p>拖曳圖片到這裡或點擊選擇檔案</p>
+    </div>
+    <input type="file" id="fileInput" multiple accept="image/*">
+    <div id="status"></div>
+
+    <!-- 統一預覽和編輯區域 -->
+    <div id="previewArea" style="display: none; text-align: center; margin-top: 20px;">
+        <h3>處理結果預覽</h3>
+        <div id="previewCanvasContainer" style="position: relative; display: inline-block;">
+            <canvas id="previewCanvas"
+                style="border: 1px solid #000; max-width: 100%; height: auto; display: block;"></canvas>
+            <canvas id="previewEditCanvas"
+                style="position: absolute; top: 0; left: 0; cursor: crosshair; width: 100%; height: 100%;"></canvas>
+            <button id="previewDownloadButton"
+                style="position: absolute; top: 10px; right: 10px; padding: 5px 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; display: none;">下載圖片</button>
+        </div>
+        <div id="previewEditTools" style="margin-top: 10px;">
+            <button id="previewRectangleTool">矩形工具</button>
+            <button id="previewArrowTool">箭頭工具</button>
+            <button id="previewMosaicTool">馬賽克工具</button>
+            <button id="previewUndoButton">復原</button>
+            <button id="previewClearButton">清除所有編輯</button>
+        </div>
+        <div style="margin-top: 10px;">
+            <button id="processMoreButton"
+                style="padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer; margin-right: 10px;">處理更多圖片</button>
+            <button id="clearPreviewButton"
+                style="padding: 10px 15px; background-color: #6c757d; color: white; border: none; cursor: pointer; margin-right: 10px;">清除預覽</button>
+            <button id="downloadPNGButton"
+                style="padding: 10px 15px; background-color: #28a745; color: white; border: none; cursor: pointer; display: none;">下載PNG高畫質</button>
+        </div>
+    </div>
+    <div>
+        <button id="selectLogoBtn" style="display: none;">選擇 Logo</button>
+        <button id="selectAdaLogoBtn" style="display: none;">選擇阿達專用 Logo</button>
+        <input type="file" id="logoInput" accept="image/*" style="display: none;">
+        <span id="logoStatus"></span>
+        <img id="logoPreview" alt="Logo Preview" style="display: none;">
+    </div>
+
+    <div id="screenshotArrange" style="display: none;">
+        <input type="file" id="fileInput2" multiple accept="image/*">
+        <span id="fileCount"></span>
+        <button id="clearAllButton">清除所有圖片</button>
+        <div id="imageList"></div>
+        <button id="processButton">處理圖片</button>
+        <br>
+        <div id="canvasContainer">
+            <canvas id="canvas"></canvas>
+            <canvas id="editCanvas"></canvas>
+            <button id="downloadButton">下載圖片</button>
+        </div>
+        <div id="editTools">
+            <button id="rectangleTool">矩形工具</button>
+            <button id="arrowTool">箭頭工具</button>
+            <button id="mosaicTool">馬賽克工具</button>
+            <button id="undoButton">復原</button>
+            <button id="clearButton">清除所有編輯</button>
+        </div>
+    </div>
+
+    <!-- 圖片裁切功能區塊 -->
+    <div id="cropImageArea" style="display: none; text-align: center; margin-top: 20px;">
+        <h3>圖片裁切</h3>
+        <div id="cropCanvasContainer" style="position: relative; display: inline-block;">
+            <canvas id="cropCanvas" style="border: 1px solid #000;"></canvas>
+            <canvas id="cropSelectionCanvas" style="position: absolute; top: 0; left: 0; z-index: 10;"></canvas>
+        </div>
+        <div style="margin-top: 10px;">
+            <button id="executeCropButton"
+                style="padding: 10px 15px; background-color: #007bff; color: white; border: none; cursor: pointer;">執行裁切</button>
+            <button id="cancelCropButton"
+                style="padding: 10px 15px; background-color: #dc3545; color: white; border: none; cursor: pointer;">取消</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.0/dist/browser-image-compression.js"></script>
+    <script>
+        // Define global constants for max crop dimensions
+        const MAX_CROP_WIDTH = 1000; // 限制裁切預覽寬度為1000px
+        const MAX_CROP_HEIGHT = 800; // Example value, adjust as needed
+
+        // ============ 安全的高級圖像縮放算法 (修復線條問題) ============
+
+        /**
+         * 安全的高級圖像縮放函數 - 不使用有問題的銳化濾鏡
+         */
+        function safeAdvancedImageScale(sourceCanvas, targetWidth, targetHeight, quality = 'balanced') {
+            const sourceWidth = sourceCanvas.width;
+            const sourceHeight = sourceCanvas.height;
+            const scaleX = targetWidth / sourceWidth;
+            const scaleY = targetHeight / sourceHeight;
+            const minScale = Math.min(scaleX, scaleY);
+
+            console.log(`縮放品質選擇: ${quality}, 縮放比例: ${minScale.toFixed(3)}`);
+
+            // 根據品質設定選擇縮放策略
+            switch (quality) {
+                case 'ultra':
+                    // 超高品質：總是使用多步驟縮放（縮小時）或高品質縮放（放大時）
+                    if (minScale < 1.0) {
+                        return safeMultiStepScale(sourceCanvas, targetWidth, targetHeight);
+                    } else {
+                        return safeHighQualityScale(sourceCanvas, targetWidth, targetHeight);
+                    }
+
+                case 'high':
+                    return safeHighQualityScale(sourceCanvas, targetWidth, targetHeight);
+
+                case 'balanced':
+                    return balancedQualityScale(sourceCanvas, targetWidth, targetHeight);
+
+                case 'fast':
+                    return simpleFastScale(sourceCanvas, targetWidth, targetHeight);
+
+                default:
+                    return balancedQualityScale(sourceCanvas, targetWidth, targetHeight);
+            }
+        }
+
+        /**
+         * 安全的多步驟縮放（不使用銳化）
+         */
+        function safeMultiStepScale(sourceCanvas, targetWidth, targetHeight) {
+            let currentCanvas = sourceCanvas;
+            const scaleX = targetWidth / sourceCanvas.width;
+            const scaleY = targetHeight / sourceCanvas.height;
+            const minScale = Math.min(scaleX, scaleY);
+
+            // 計算步驟數 - 每步最多縮小到50%
+            const steps = Math.max(1, Math.ceil(Math.log(minScale) / Math.log(0.5)));
+
+            console.log(`Ultra質量模式：原始尺寸 ${sourceCanvas.width}x${sourceCanvas.height} -> 目標 ${targetWidth}x${targetHeight}，縮放比例 ${minScale.toFixed(3)}，使用 ${steps} 步縮放`);
+
+            for (let i = 0; i < steps; i++) {
+                const isLastStep = (i === steps - 1);
+
+                let stepTargetWidth, stepTargetHeight;
+                if (isLastStep) {
+                    stepTargetWidth = targetWidth;
+                    stepTargetHeight = targetHeight;
+                } else {
+                    // 每步縮小到50%
+                    stepTargetWidth = Math.max(targetWidth, Math.round(currentCanvas.width * 0.5));
+                    stepTargetHeight = Math.max(targetHeight, Math.round(currentCanvas.height * 0.5));
+                }
+
+                const stepCanvas = document.createElement('canvas');
+                stepCanvas.width = stepTargetWidth;
+                stepCanvas.height = stepTargetHeight;
+                const stepCtx = stepCanvas.getContext('2d');
+
+                setupUltraQualityCanvas(stepCtx);
+                stepCtx.drawImage(currentCanvas, 0, 0, stepTargetWidth, stepTargetHeight);
+
+                console.log(`步驟 ${i + 1}/${steps}: ${currentCanvas.width}x${currentCanvas.height} -> ${stepTargetWidth}x${stepTargetHeight}`);
+                currentCanvas = stepCanvas;
+            }
+
+            return currentCanvas;
+        }
+
+        /**
+         * 安全的高品質縮放
+         */
+        function safeHighQualityScale(sourceCanvas, targetWidth, targetHeight) {
+            const canvas = document.createElement('canvas');
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            const ctx = canvas.getContext('2d');
+
+            console.log(`高品質模式：${sourceCanvas.width}x${sourceCanvas.height} -> ${targetWidth}x${targetHeight}`);
+            setupHighQualityCanvas(ctx);
+            ctx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
+
+            return canvas;
+        }
+
+        /**
+         * 平衡品質縮放
+         */
+        function balancedQualityScale(sourceCanvas, targetWidth, targetHeight) {
+            const canvas = document.createElement('canvas');
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            const ctx = canvas.getContext('2d');
+
+            console.log(`平衡模式：${sourceCanvas.width}x${sourceCanvas.height} -> ${targetWidth}x${targetHeight}`);
+            setupBalancedQualityCanvas(ctx);
+            ctx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
+
+            return canvas;
+        }
+
+        /**
+         * 簡單快速縮放
+         */
+        function simpleFastScale(sourceCanvas, targetWidth, targetHeight) {
+            const canvas = document.createElement('canvas');
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            const ctx = canvas.getContext('2d');
+
+            console.log(`快速模式：${sourceCanvas.width}x${sourceCanvas.height} -> ${targetWidth}x${targetHeight}`);
+            setupFastQualityCanvas(ctx);
+            ctx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
+
+            return canvas;
+        }
+
+        // ============ 品質選項交互邏輯 ============
+
+        function updateQualityDescription() {
+            const quality = document.getElementById('scalingQuality').value;
+            const description = document.getElementById('qualityDescription');
+
+            const descriptions = {
+                ultra: '<span class="badge-ultra quality-badge">超高品質</span>多步驟縮放 + 最高JPEG品質(99%) - 檔案較大但品質最佳',
+                high: '<span class="badge-high quality-badge">高品質</span>高品質縮放 + JPEG品質(95%) - 平衡品質與檔案大小',
+                balanced: '<span class="badge-balanced quality-badge">平衡模式</span>中等品質縮放 + JPEG品質(90%) - 標準品質與合理檔案大小',
+                fast: '<span class="badge-fast quality-badge">快速模式</span>快速縮放 + JPEG品質(80%) - 處理速度快、檔案較小'
+            };
+
+            description.innerHTML = descriptions[quality];
+        }
+
+        // ============ 原有功能代碼 ============
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('status');
+        const resize320ModeBtn = document.getElementById('resize320Mode');
+        const resize1080ModeBtn = document.getElementById('resize1080Mode');
+        const addWatermarkModeBtn = document.getElementById('addWatermarkMode');
+        const adaSpecialModeBtn = document.getElementById('adaSpecialMode');
+        const screenshotArrangeModeBtn = document.getElementById('screenshotArrangeMode');
+        const cropImageModeBtn = document.getElementById('cropImageMode');
+        const logoInput = document.getElementById('logoInput');
+        const logoStatus = document.getElementById('logoStatus');
+        const logoPreview = document.getElementById('logoPreview');
+        const pageTitle = document.getElementById('pageTitle');
+        const selectLogoBtn = document.getElementById('selectLogoBtn');
+        const selectAdaLogoBtn = document.getElementById('selectAdaLogoBtn');
+        const screenshotArrangeDiv = document.getElementById('screenshotArrange');
+        const cropImageArea = document.getElementById('cropImageArea');
+        // const cropFileInput = document.getElementById('cropFileInput'); // 移除，因為已統一使用 fileInput
+        const cropCanvas = document.getElementById('cropCanvas');
+        const cropCtx = cropCanvas.getContext('2d');
+        const cropSelectionCanvas = document.getElementById('cropSelectionCanvas');
+        const cropSelectionCtx = cropSelectionCanvas.getContext('2d');
+        const executeCropButton = document.getElementById('executeCropButton');
+        const cancelCropButton = document.getElementById('cancelCropButton');
+
+        // 品質選項元素
+        const scalingQuality = document.getElementById('scalingQuality');
+
+        // 預覽相關元素
+        const previewArea = document.getElementById('previewArea');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const previewCtx = previewCanvas.getContext('2d');
+        const previewEditCanvas = document.getElementById('previewEditCanvas');
+        const previewEditCtx = previewEditCanvas.getContext('2d');
+        const previewDownloadButton = document.getElementById('previewDownloadButton');
+        const processMoreButton = document.getElementById('processMoreButton');
+        const clearPreviewButton = document.getElementById('clearPreviewButton');
+        const downloadPNGButton = document.getElementById('downloadPNGButton');
+
+        // 預覽編輯工具
+        const previewRectangleTool = document.getElementById('previewRectangleTool');
+        const previewArrowTool = document.getElementById('previewArrowTool');
+        const previewMosaicTool = document.getElementById('previewMosaicTool');
+        const previewUndoButton = document.getElementById('previewUndoButton');
+        const previewClearButton = document.getElementById('previewClearButton');
+
+        // 預覽編輯狀態變量
+        let previewIsDrawing = false;
+        let previewStartX, previewStartY;
+        let previewCurrentTool = null;
+        let previewEditHistory = [];
+        let previewBaseEditState = null;
+
+        let currentMode = 'resize320';
+        let logoImage = null;
+        let logoFileName = '';
+        let adaSpecialLogo = null;
+        let adaSpecialLogoFileName = '';
+
+        // 裁切功能相關變數
+        let originalCropImage = null;
+        let cropStartX, cropStartY, cropEndX, cropEndY;
+        let isCropping = false;
+        let cropSelection = { x: 0, y: 0, width: 0, height: 0 };
+
+        // 從 localStorage 讀取上次使用的 Logo
+        const lastUsedLogo = localStorage.getItem('lastUsedLogo');
+        const lastUsedLogoName = localStorage.getItem('lastUsedLogoName');
+        const lastUsedAdaLogo = localStorage.getItem('lastUsedAdaLogo');
+        const lastUsedAdaLogoName = localStorage.getItem('lastUsedAdaLogoName');
+
+        if (lastUsedLogo && lastUsedLogoName) {
+            logoImage = new Image();
+            logoImage.src = lastUsedLogo;
+            logoFileName = lastUsedLogoName;
+            updateLogoPreview(lastUsedLogo, lastUsedLogoName, '一般');
+        }
+
+        if (lastUsedAdaLogo && lastUsedAdaLogoName) {
+            adaSpecialLogo = new Image();
+            adaSpecialLogo.src = lastUsedAdaLogo;
+            adaSpecialLogoFileName = lastUsedAdaLogoName;
+        }
+
+        // 品質選項事件監聽器
+        scalingQuality.addEventListener('change', updateQualityDescription);
+
+        dropZone.addEventListener('click', () => {
+            console.log('dropZone clicked');
+            fileInput.click();
+        });
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', handleFiles);
+        fileInput.addEventListener('change', handleFiles);
+        resize320ModeBtn.addEventListener('click', () => setMode('resize320'));
+        resize1080ModeBtn.addEventListener('click', () => setMode('resize1080'));
+        addWatermarkModeBtn.addEventListener('click', () => setMode('addWatermark'));
+        adaSpecialModeBtn.addEventListener('click', () => setMode('adaSpecial'));
+        screenshotArrangeModeBtn.addEventListener('click', () => setMode('screenshotArrange'));
+        cropImageModeBtn.addEventListener('click', () => setMode('cropImage')); // 新增：裁切模式按鈕事件
+        selectLogoBtn.addEventListener('click', () => logoInput.click());
+        selectAdaLogoBtn.addEventListener('click', () => logoInput.click());
+
+        // 預覽功能事件監聽器
+        previewDownloadButton.addEventListener('click', downloadPreviewImage);
+        processMoreButton.addEventListener('click', () => {
+            previewArea.style.display = 'none';
+            status.innerHTML = '';
+            fileInput.value = '';
+        });
+        clearPreviewButton.addEventListener('click', () => {
+            previewArea.style.display = 'none';
+            status.innerHTML = '';
+        });
+
+        downloadPNGButton.addEventListener('click', downloadPreviewImageAsPNG);
+
+        // 預覽編輯工具事件監聽器
+        previewRectangleTool.addEventListener('click', () => {
+            previewCurrentTool = 'rectangle';
+            previewEditCanvas.style.cursor = 'crosshair';
+        });
+        previewArrowTool.addEventListener('click', () => {
+            previewCurrentTool = 'arrow';
+            previewEditCanvas.style.cursor = 'crosshair';
+        });
+        previewMosaicTool.addEventListener('click', () => {
+            previewCurrentTool = 'mosaic';
+            previewEditCanvas.style.cursor = 'crosshair';
+        });
+        previewUndoButton.addEventListener('click', previewUndo);
+        previewClearButton.addEventListener('click', previewClearEdits);
+
+        // 預覽編輯canvas事件監聽器
+        previewEditCanvas.addEventListener('mousedown', previewStartDrawing);
+        previewEditCanvas.addEventListener('mousemove', previewDraw);
+        previewEditCanvas.addEventListener('mouseup', previewStopDrawing);
+        previewEditCanvas.addEventListener('mouseout', previewStopDrawing);
+
+        // 裁切功能事件監聽器
+
+        cropSelectionCanvas.addEventListener('mousedown', startCropDrawing);
+        cropSelectionCanvas.addEventListener('mousemove', drawCropSelection);
+        cropSelectionCanvas.addEventListener('mouseup', stopCropDrawing);
+        cropSelectionCanvas.addEventListener('mouseout', stopCropDrawing);
+        executeCropButton.addEventListener('click', executeCrop);
+        cancelCropButton.addEventListener('click', cancelCrop);
+
+        logoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (currentMode === 'adaSpecial') {
+                        adaSpecialLogo = new Image();
+                        adaSpecialLogo.src = e.target.result;
+                        adaSpecialLogoFileName = file.name;
+                        localStorage.setItem('lastUsedAdaLogo', e.target.result);
+                        localStorage.setItem('lastUsedAdaLogoName', file.name);
+                        updateLogoPreview(e.target.result, file.name, '阿達專用');
+                    } else if (currentMode === 'addWatermark') {
+                        logoImage = new Image();
+                        logoImage.src = e.target.result;
+                        logoFileName = file.name;
+                        localStorage.setItem('lastUsedLogo', e.target.result);
+                        localStorage.setItem('lastUsedLogoName', file.name);
+                        updateLogoPreview(e.target.result, file.name, '一般');
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function updateLogoPreview(src, name, type) {
+            logoPreview.src = src;
+            logoPreview.style.display = 'block';
+            logoStatus.textContent = `已載入${type} Logo: ${name}`;
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            [resize320ModeBtn, resize1080ModeBtn, addWatermarkModeBtn, adaSpecialModeBtn, screenshotArrangeModeBtn, cropImageModeBtn].forEach(btn => btn.classList.remove('active'));
+            selectLogoBtn.style.display = 'none';
+            selectAdaLogoBtn.style.display = 'none';
+            logoPreview.style.display = 'none';
+            logoStatus.textContent = '';
+            screenshotArrangeDiv.style.display = 'none';
+            cropImageArea.style.display = 'none';
+
+            // 清除之前的處理檔案資訊
+            status.innerHTML = '';
+
+            if (mode === 'resize320' || mode === 'resize1080' || mode === 'addWatermark' || mode === 'adaSpecial') {
+                if (previewArea.style.display === 'block') {
+                    // 如果預覽區有圖片，保持預覽區顯示，隱藏拖曳區
+                    dropZone.style.display = 'none';
+                    fileInput.style.display = 'none';
+                    reprocessPreviewImage(mode); // 重新處理預覽圖片
+                } else {
+                    // 否則，顯示拖曳區，隱藏預覽區
+                    dropZone.style.display = 'flex';
+                    fileInput.style.display = 'none';
+                    previewArea.style.display = 'none';
+                }
+
+                if (mode === 'resize320') {
+                    resize320ModeBtn.classList.add('active');
+                    pageTitle.textContent = '修改圖片短邊（320px）';
+                } else if (mode === 'resize1080') {
+                    resize1080ModeBtn.classList.add('active');
+                    pageTitle.textContent = '修改圖片長邊（1000px）';
+                } else if (mode === 'addWatermark') {
+                    addWatermarkModeBtn.classList.add('active');
+                    pageTitle.textContent = '添加浮水印';
+                    selectLogoBtn.style.display = 'inline-block';
+                    if (logoImage) {
+                        updateLogoPreview(logoImage.src, logoFileName, '一般');
+                    }
+                } else if (mode === 'adaSpecial') {
+                    adaSpecialModeBtn.classList.add('active');
+                    pageTitle.textContent = '電腦王阿達專用';
+                    selectAdaLogoBtn.style.display = 'inline-block';
+                    if (adaSpecialLogo) {
+                        updateLogoPreview(adaSpecialLogo.src, adaSpecialLogoFileName, '阿達專用');
+                    }
+                }
+            } else if (mode === 'screenshotArrange') {
+                screenshotArrangeModeBtn.classList.add('active');
+                pageTitle.textContent = '截圖並排';
+                screenshotArrangeDiv.style.display = 'block';
+                dropZone.style.display = 'none';
+                previewArea.style.display = 'none';
+            } else if (mode === 'cropImage') {
+                cropImageModeBtn.classList.add('active');
+                pageTitle.textContent = '圖片裁切';
+                cropImageArea.style.display = 'block';
+                dropZone.style.display = 'flex'; // 修正：裁切模式下應該顯示拖曳區
+                fileInput.style.display = 'none';
+                previewArea.style.display = 'none';
+            }
+
+            // 清除檔案輸入
+            fileInput.value = '';
+        }
+
+        function handleFiles(e) {
+            console.log('handleFiles triggered');
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer ? e.dataTransfer.files : e.target.files;
+            processFiles(files);
+        }
+
+        async function processFiles(files) {
+            console.log('processFiles triggered', files);
+            status.innerHTML = '開始處理檔案...';
+
+            // 只處理第一張圖片進行預覽
+            const file = files[0];
+            if (file && file.type.startsWith('image/')) {
+                try {
+                    let result = null;
+                    if (currentMode === 'resize320') {
+                        result = await processImageForPreview(file, 'resize320');
+                    } else if (currentMode === 'resize1080') {
+                        result = await processImageForPreview(file, 'resize1080');
+                    } else if (currentMode === 'addWatermark') {
+                        if (logoImage) {
+                            result = await processImageForPreview(file, 'addWatermark');
+                        } else {
+                            status.innerHTML += '<br>請先選擇 Logo 後再上傳圖片。';
+                            return;
+                        }
+                    } else if (currentMode === 'adaSpecial') {
+                        if (adaSpecialLogo) {
+                            result = await processImageForPreview(file, 'adaSpecial');
+                        } else {
+                            status.innerHTML += '<br>請先選擇阿達專用 Logo 後再上傳圖片。';
+                            return;
+                        }
+                    } else if (currentMode === 'cropImage') { // 新增：裁切模式處理
+                        handleCropFileSelect({ target: { files: [file] } }); // 模擬事件對象
+                        status.innerHTML += '<br>圖片已載入裁切區，請繪製裁切範圍。';
+                        return; // 裁切模式下不進入預覽區，直接顯示裁切介面
+                    }
+
+                    if (result && result.canvas) {
+                        const filename = file.name.replace(/\.[^/.]+$/, ".jpg");
+                        showPreview(result.canvas, filename);
+                        status.innerHTML += '<br>處理完成！請查看預覽結果。';
+                    }
+                } catch (error) {
+                    console.error('處理錯誤:', error);
+                    status.innerHTML += '<br>處理失敗: ' + error.message;
+                }
+            }
+        }
+
+        async function resizeImage(file, targetSize, returnBlob = false) {
+            return new Promise((resolve, reject) => {
+                try {
+                    status.innerHTML += `<br>正在處理: ${file.name}`;
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        let newWidth, newHeight;
+
+                        const longSide = Math.max(img.width, img.height);
+
+                        if (longSide <= targetSize) {
+                            newWidth = img.width;
+                            newHeight = img.height;
+                        } else if (img.width > img.height) {
+                            newWidth = targetSize;
+                            newHeight = (img.height / img.width) * targetSize;
+                        } else {
+                            newHeight = targetSize;
+                            newWidth = (img.width / img.height) * targetSize;
+                        }
+
+                        // 使用安全的高級縮放技術
+                        const sourceCanvas = document.createElement('canvas');
+                        sourceCanvas.width = img.width;
+                        sourceCanvas.height = img.height;
+                        const sourceCtx = sourceCanvas.getContext('2d');
+                        setupHighQualityCanvas(sourceCtx);
+                        sourceCtx.drawImage(img, 0, 0);
+
+                        const quality = scalingQuality.value;
+                        const scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
+
+                        canvas.width = scaledCanvas.width;
+                        canvas.height = scaledCanvas.height;
+                        setupHighQualityCanvas(ctx);
+                        ctx.drawImage(scaledCanvas, 0, 0);
+
+                        // 根據品質選項決定JPEG品質
+                        let jpegQuality = 0.98; // 預設高品質
+                        switch (quality) {
+                            case 'ultra':
+                                jpegQuality = 0.99; // 最高品質
+                                break;
+                            case 'high':
+                                jpegQuality = 0.95; // 高品質
+                                break;
+                            case 'balanced':
+                                jpegQuality = 0.90; // 平衡品質
+                                break;
+                            case 'fast':
+                                jpegQuality = 0.80; // 快速模式較低品質
+                                break;
+                        }
+
+                        console.log(`使用JPEG品質: ${jpegQuality}`);
+
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                const resizedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: "image/jpeg" });
+                                console.log(`輸出檔案大小: ${(blob.size / 1024 / 1024).toFixed(2)} MB`);
+                                if (returnBlob) {
+                                    resolve(resizedFile);
+                                } else {
+                                    saveAs(resizedFile);
+                                    status.innerHTML += ` - 調整大小成功！(品質: ${quality}, 檔案大小: ${(blob.size / 1024 / 1024).toFixed(2)} MB)`;
+                                    resolve();
+                                }
+                            } else {
+                                reject(new Error('無法創建調整大小後的 blob'));
+                            }
+                        }, 'image/jpeg', jpegQuality);
+                    };
+                    img.src = URL.createObjectURL(file);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        async function addWatermark(file, logo, returnBlob = false) {
+            return new Promise((resolve, reject) => {
+                try {
+                    status.innerHTML += `<br>正在處理: ${file.name}`;
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+
+                        // 設置高品質縮放
+                        setupHighQualityCanvas(ctx);
+                        ctx.drawImage(img, 0, 0, img.width, img.height);
+
+                        // Logo 尺寸縮小30%
+                        const logoWidth = logo.width * 0.7;
+                        const logoHeight = logo.height * 0.7;
+
+                        // 計算 Logo 位置（右下角，距離邊緣 15 像素）
+                        const logoX = img.width - logoWidth - 15;
+                        const logoY = img.height - logoHeight - 15;
+
+                        ctx.globalAlpha = 0.5;
+                        ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+
+                        canvas.toBlob((blob) => {
+                            if (blob) {
+                                const watermarkedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: "image/jpeg" });
+                                if (returnBlob) {
+                                    resolve(watermarkedFile);
+                                } else {
+                                    saveAs(watermarkedFile);
+                                    status.innerHTML += ` - 添加浮水印成功！`;
+                                    resolve();
+                                }
+                            } else {
+                                reject(new Error('無法創建添加浮水印後的 blob'));
+                            }
+                        }, 'image/jpeg', 0.98);
+                    };
+                    img.src = URL.createObjectURL(file);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        async function adaSpecialProcess(file) {
+            try {
+                console.log('開始阿達專用處理');
+                status.innerHTML += `<br>正在處理: ${file.name}`;
+
+                console.log('步驟 1: 調整圖片大小');
+                status.innerHTML += `<br>- 調整圖片大小中...`;
+                let processedImage = await resizeImage(file, 1000, true);
+
+                console.log('步驟 2: 添加浮水印');
+                status.innerHTML += `<br>- 添加浮水印中...`;
+                if (!adaSpecialLogo) {
+                    throw new Error('阿達專用 Logo 未設置');
+                }
+                processedImage = await addWatermark(processedImage, adaSpecialLogo, true);
+
+                console.log('儲存最終圖片');
+                saveAs(processedImage);
+                status.innerHTML += `<br>電腦王阿達專用處理完成！`;
+            } catch (error) {
+                console.error('阿達專用處理錯誤:', error);
+                status.innerHTML += `<br>處理失敗: ${error.message}`;
+            }
+        }
+
+        // 高品質Canvas設置函數
+        function setupHighQualityCanvas(ctx) {
+            // 設置高品質圖像縮放
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            // 針對文字優化的設置
+            ctx.textRenderingOptimization = 'optimizeQuality';
+        }
+
+        // ============ 不同品質的Canvas設置 ============
+
+        function setupUltraQualityCanvas(ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.textRenderingOptimization = 'optimizeQuality';
+            // 超高品質設置
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+        function setupBalancedQualityCanvas(ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'medium';
+            ctx.textRenderingOptimization = 'optimizeSpeed';
+        }
+
+        function setupFastQualityCanvas(ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'low';
+            ctx.textRenderingOptimization = 'optimizeSpeed';
+        }
+
+        // 添加黑框函數
+        function addBlackBorder(canvas) {
+            const borderedCanvas = document.createElement('canvas');
+            const borderedCtx = borderedCanvas.getContext('2d');
+
+            // 新canvas尺寸為原尺寸+2px（上下各1px，左右各1px）
+            borderedCanvas.width = canvas.width + 2;
+            borderedCanvas.height = canvas.height + 2;
+
+            // 填充黑色背景
+            borderedCtx.fillStyle = 'black';
+            borderedCtx.fillRect(0, 0, borderedCanvas.width, borderedCanvas.height);
+
+            // 在中央繪製原始圖片
+            borderedCtx.drawImage(canvas, 1, 1);
+
+            return borderedCanvas;
+        }
+
+        // 處理圖片並返回canvas（預覽模式）
+        async function processImageForPreview(file, mode) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        // 🔥 獲取當前品質設定
+                        const quality = scalingQuality.value;
+                        console.log(`🎯 處理模式: ${mode}, 品質設定: ${quality}`);
+
+                        if (mode === 'resize320') {
+                            // 短邊縮放到320px
+                            const shortSide = Math.min(img.width, img.height);
+                            let newWidth, newHeight;
+
+                            if (shortSide <= 320) {
+                                newWidth = img.width;
+                                newHeight = img.height;
+                            } else if (img.width < img.height) {
+                                // 直版圖片，寬度是短邊
+                                newWidth = 320;
+                                newHeight = (img.height / img.width) * 320;
+                            } else {
+                                // 橫版圖片，高度是短邊
+                                newHeight = 320;
+                                newWidth = (img.width / img.height) * 320;
+                            }
+
+                            // 🔥 使用安全的高級縮放算法
+                            const sourceCanvas = document.createElement('canvas');
+                            sourceCanvas.width = img.width;
+                            sourceCanvas.height = img.height;
+                            const sourceCtx = sourceCanvas.getContext('2d');
+                            setupHighQualityCanvas(sourceCtx);
+                            sourceCtx.drawImage(img, 0, 0);
+
+                            const scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
+
+                            // 添加黑框
+                            const borderedCanvas = addBlackBorder(scaledCanvas);
+                            resolve({ canvas: borderedCanvas });
+
+                        } else if (mode === 'resize1080') {
+                            // 長邊縮放到1000px
+                            const longSide = Math.max(img.width, img.height);
+                            let newWidth, newHeight;
+
+                            if (longSide <= 1000) {
+                                newWidth = img.width;
+                                newHeight = img.height;
+                            } else if (img.width > img.height) {
+                                newWidth = 1000;
+                                newHeight = (img.height / img.width) * 1000;
+                            } else {
+                                newHeight = 1000;
+                                newWidth = (img.width / img.height) * 1000;
+                            }
+
+                            // 🔥 使用安全的高級縮放算法
+                            const sourceCanvas = document.createElement('canvas');
+                            sourceCanvas.width = img.width;
+                            sourceCanvas.height = img.height;
+                            const sourceCtx = sourceCanvas.getContext('2d');
+                            setupHighQualityCanvas(sourceCtx);
+                            sourceCtx.drawImage(img, 0, 0);
+
+                            const scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
+
+                            // 添加黑框
+                            const borderedCanvas = addBlackBorder(scaledCanvas);
+                            resolve({ canvas: borderedCanvas });
+
+                        } else if (mode === 'addWatermark') {
+                            // 添加浮水印 - 🔥 使用品質設定
+                            const canvas = document.createElement('canvas');
+                            canvas.width = img.width;
+                            canvas.height = img.height;
+                            const ctx = canvas.getContext('2d');
+
+                            // 🔥 根據品質設定選擇Canvas設置
+                            switch (quality) {
+                                case 'ultra':
+                                    setupUltraQualityCanvas(ctx);
+                                    break;
+                                case 'high':
+                                    setupHighQualityCanvas(ctx);
+                                    break;
+                                case 'balanced':
+                                    setupBalancedQualityCanvas(ctx);
+                                    break;
+                                case 'fast':
+                                    setupFastQualityCanvas(ctx);
+                                    break;
+                                default:
+                                    setupBalancedQualityCanvas(ctx);
+                            }
+
+                            ctx.drawImage(img, 0, 0);
+
+                            // 添加浮水印（縮小30%）
+                            const logoWidth = logoImage.width * 0.7;
+                            const logoHeight = logoImage.height * 0.7;
+                            const logoX = img.width - logoWidth - 15;
+                            const logoY = img.height - logoHeight - 15;
+
+                            ctx.globalAlpha = 0.5;
+                            ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
+
+                            resolve({ canvas: canvas });
+
+                        } else if (mode === 'adaSpecial') {
+                            // 阿達專用：縮放 + 浮水印 + 黑框
+                            const longSide = Math.max(img.width, img.height);
+                            let newWidth, newHeight;
+
+                            if (longSide <= 1000) {
+                                newWidth = img.width;
+                                newHeight = img.height;
+                            } else if (img.width > img.height) {
+                                newWidth = 1000;
+                                newHeight = (img.height / img.width) * 1000;
+                            } else {
+                                newHeight = 1000;
+                                newWidth = (img.width / img.height) * 1000;
+                            }
+
+                            // 🔥 使用安全的高級縮放算法
+                            const sourceCanvas = document.createElement('canvas');
+                            sourceCanvas.width = img.width;
+                            sourceCanvas.height = img.height;
+                            const sourceCtx = sourceCanvas.getContext('2d');
+                            setupHighQualityCanvas(sourceCtx);
+                            sourceCtx.drawImage(img, 0, 0);
+
+                            const scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
+                            const canvas = document.createElement('canvas');
+                            canvas.width = scaledCanvas.width;
+                            canvas.height = scaledCanvas.height;
+                            const ctx = canvas.getContext('2d');
+                            setupHighQualityCanvas(ctx);
+                            ctx.drawImage(scaledCanvas, 0, 0);
+
+                            // 添加阿達專用浮水印（縮小30%）
+                            const logoWidth = adaSpecialLogo.width * 0.7;
+                            const logoHeight = adaSpecialLogo.height * 0.7;
+                            const logoX = newWidth - logoWidth - 15;
+                            const logoY = newHeight - logoHeight - 15;
+
+                            ctx.globalAlpha = 0.5;
+                            ctx.drawImage(adaSpecialLogo, logoX, logoY, logoWidth, logoHeight);
+
+                            // 添加黑框
+                            const borderedCanvas = addBlackBorder(canvas);
+                            resolve({ canvas: borderedCanvas });
+                        }
+
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                img.onerror = () => reject(new Error('圖片載入失敗'));
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        // 顯示預覽結果
+        function showPreview(canvas, filename) {
+            previewCanvas.width = canvas.width;
+            previewCanvas.height = canvas.height;
+            previewCtx.drawImage(canvas, 0, 0);
+
+            // 設置編輯canvas
+            previewEditCanvas.width = canvas.width;
+            previewEditCanvas.height = canvas.height;
+            previewEditCanvas.style.display = 'block';
+
+            // 儲存下載信息
+            previewCanvas.downloadFilename = filename;
+
+            // 初始化編輯歷史
+            previewClearEdits();
+            previewEditHistory = [previewEditCtx.getImageData(0, 0, previewEditCanvas.width, previewEditCanvas.height)];
+
+            // 顯示下載按鈕和預覽區域
+            previewDownloadButton.style.display = 'block';
+            downloadPNGButton.style.display = 'inline-block';
+            previewArea.style.display = 'block';
+            dropZone.style.display = 'none';
+        }
+
+        // 預覽編輯工具函數
+        function previewStartDrawing(e) {
+            if (!previewCurrentTool) return;
+            previewIsDrawing = true;
+
+            // 🔥 修正：座標映射 (處理 CSS 縮放)
+            const rect = previewEditCanvas.getBoundingClientRect();
+            const scaleX = previewEditCanvas.width / rect.width;
+            const scaleY = previewEditCanvas.height / rect.height;
+
+            previewStartX = (e.clientX - rect.left) * scaleX;
+            previewStartY = (e.clientY - rect.top) * scaleY;
+
+            previewBaseEditState = previewEditCtx.getImageData(0, 0, previewEditCanvas.width, previewEditCanvas.height);
+        }
+
+        function previewStopDrawing() {
+            if (!previewIsDrawing) return;
+            previewIsDrawing = false;
+            previewEditHistory.push(previewEditCtx.getImageData(0, 0, previewEditCanvas.width, previewEditCanvas.height));
+        }
+
+        function previewDraw(e) {
+            if (!previewIsDrawing || !previewCurrentTool) return;
+
+            // 🔥 修正：座標映射 (處理 CSS 縮放)
+            const rect = previewEditCanvas.getBoundingClientRect();
+            const scaleX = previewEditCanvas.width / rect.width;
+            const scaleY = previewEditCanvas.height / rect.height;
+
+            const endX = (e.clientX - rect.left) * scaleX;
+            const endY = (e.clientY - rect.top) * scaleY;
+
+            previewEditCtx.clearRect(0, 0, previewEditCanvas.width, previewEditCanvas.height);
+            if (previewEditHistory.length > 0) {
+                previewEditCtx.putImageData(previewEditHistory[previewEditHistory.length - 1], 0, 0);
+            }
+
+            previewEditCtx.beginPath();
+            previewEditCtx.strokeStyle = 'red';
+            previewEditCtx.lineWidth = 3;
+
+            if (previewCurrentTool === 'rectangle') {
+                // 🌟 添加矩形陰影效果 - 修復缺角問題
+                previewEditCtx.save();
+                previewEditCtx.strokeStyle = 'rgba(0,0,0,0.4)';
+                previewEditCtx.lineWidth = 3; // 🔧 修復：調整線寬避免陰影間隙 (改為3px)
+                previewEditCtx.lineCap = 'butt'; // 🔧 修復：使用butt避免圓角導致的缺角
+                previewEditCtx.lineJoin = 'miter'; // 🔧 修復：使用miter確保尖角
+
+                // 繪製陰影矩形
+                previewEditCtx.beginPath();
+                previewEditCtx.rect(previewStartX + 3, previewStartY + 3, endX - previewStartX, endY - previewStartY);
+                previewEditCtx.stroke();
+
+                previewEditCtx.restore();
+
+                // 繪製主矩形 - 確保紅色且無缺角
+                previewEditCtx.save();
+                previewEditCtx.strokeStyle = 'red';
+                previewEditCtx.lineWidth = 2; // 🔧 修復：調整線寬避免陰影間隙 (改為2px)
+                previewEditCtx.lineCap = 'butt'; // 🔧 修復：使用butt避免圓角導致的缺角
+                previewEditCtx.lineJoin = 'miter'; // 🔧 修復：使用miter確保尖角
+
+                previewEditCtx.beginPath();
+                previewEditCtx.rect(previewStartX, previewStartY, endX - previewStartX, endY - previewStartY);
+                previewEditCtx.stroke();
+
+                previewEditCtx.restore();
+            } else if (previewCurrentTool === 'arrow') {
+                previewDrawArrow(previewStartX, previewStartY, endX, endY);
+                // 不需要額外的stroke，因為箭頭函數已經處理了所有繪製
+            } else if (previewCurrentTool === 'mosaic') {
+                // 🔥 修正：馬賽克工具需要整數座標
+                const x = Math.round(Math.min(previewStartX, endX));
+                const y = Math.round(Math.min(previewStartY, endY));
+                const width = Math.round(Math.abs(endX - previewStartX));
+                const height = Math.round(Math.abs(endY - previewStartY));
+
+                if (width > 0 && height > 0) {
+                    previewDrawMosaic(x, y, width, height);
+                }
+            }
+
+            previewBaseEditState = previewEditCtx.getImageData(0, 0, previewEditCanvas.width, previewEditCanvas.height);
+        }
+
+        function previewDrawArrow(fromX, fromY, toX, toY) {
+            const headLength = 25;
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+
+            // 💎 立體陰影風格 + 填充式三角箭頭 + 紅色主題 (修復所有問題)
+
+            // 繪製陰影效果
+            previewEditCtx.save();
+            previewEditCtx.strokeStyle = 'rgba(0,0,0,0.3)';
+            previewEditCtx.fillStyle = 'rgba(0,0,0,0.3)';
+            previewEditCtx.lineWidth = 3; // 🔧 修復：調整線寬避免陰影間隙 (改為3px)
+            previewEditCtx.lineCap = 'round';
+
+            // 陰影主線 - 修復：停在三角形基部而非尖端
+            previewEditCtx.beginPath();
+            previewEditCtx.moveTo(fromX + 2, fromY + 2);
+            previewEditCtx.lineTo(toX - headLength * 0.7 * Math.cos(angle) + 2, toY - headLength * 0.7 * Math.sin(angle) + 2); // 🔧 修復：線條停在三角形基部
+            previewEditCtx.stroke();
+
+            // 陰影箭頭頭部 (填充三角形)
+            previewEditCtx.beginPath();
+            previewEditCtx.moveTo(toX + 2, toY + 2);
+            previewEditCtx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6) + 2,
+                toY - headLength * Math.sin(angle - Math.PI / 6) + 2);
+            previewEditCtx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6) + 2,
+                toY - headLength * Math.sin(angle + Math.PI / 6) + 2);
+            previewEditCtx.closePath();
+            previewEditCtx.fill();
+
+            previewEditCtx.restore();
+
+            // 繪製主箭頭
+            previewEditCtx.save();
+            previewEditCtx.strokeStyle = 'red';
+            previewEditCtx.fillStyle = 'red';
+            previewEditCtx.lineWidth = 3; // 🔧 修復：增加線寬完全消除間隙 (改為3px)
+            previewEditCtx.lineCap = 'round';
+            previewEditCtx.lineJoin = 'round';
+
+            // 主線 - 修復：停在三角形基部而非尖端
+            previewEditCtx.beginPath();
+            previewEditCtx.moveTo(fromX, fromY);
+            previewEditCtx.lineTo(toX - headLength * 0.7 * Math.cos(angle), toY - headLength * 0.7 * Math.sin(angle)); // 🔧 修復：線條停在三角形基部
+            previewEditCtx.stroke();
+
+            // 填充式三角箭頭頭部
+            previewEditCtx.beginPath();
+            previewEditCtx.moveTo(toX, toY);
+            previewEditCtx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6),
+                toY - headLength * Math.sin(angle - Math.PI / 6));
+            previewEditCtx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6),
+                toY - headLength * Math.sin(angle + Math.PI / 6));
+            previewEditCtx.closePath();
+            previewEditCtx.fill();
+
+            previewEditCtx.restore();
+        }
+
+        function previewDrawMosaic(x, y, width, height) {
+            const MOSAIC_SIZE = 10;
+            const imageData = previewCtx.getImageData(x, y, width, height);
+            const stride = imageData.width; // 🔥 修正：使用實際的 imageData 寬度作為 stride
+
+            for (let i = 0; i < width; i += MOSAIC_SIZE) {
+                for (let j = 0; j < height; j += MOSAIC_SIZE) {
+                    const pixelData = previewGetAverageColor(imageData, i, j, MOSAIC_SIZE, width, height, stride);
+                    for (let mx = 0; mx < MOSAIC_SIZE && i + mx < width; mx++) {
+                        for (let my = 0; my < MOSAIC_SIZE && j + my < height; my++) {
+                            // 🔥 修正：使用 stride 計算索引
+                            const index = ((j + my) * stride + (i + mx)) * 4;
+                            imageData.data[index] = pixelData[0];
+                            imageData.data[index + 1] = pixelData[1];
+                            imageData.data[index + 2] = pixelData[2];
+                        }
+                    }
+                }
+            }
+            previewEditCtx.putImageData(imageData, x, y);
+        }
+
+        function previewGetAverageColor(imageData, startX, startY, size, width, height, stride) {
+            let r = 0, g = 0, b = 0, count = 0;
+            for (let i = 0; i < size && startX + i < width; i++) {
+                for (let j = 0; j < size && startY + j < height; j++) {
+                    // 🔥 修正：使用 stride 計算索引
+                    const index = ((startY + j) * stride + (startX + i)) * 4;
+                    r += imageData.data[index];
+                    g += imageData.data[index + 1];
+                    b += imageData.data[index + 2];
+                    count++;
+                }
+            }
+            return [Math.round(r / count), Math.round(g / count), Math.round(b / count)];
+        }
+
+        function previewUndo() {
+            if (previewEditHistory.length > 1) {
+                previewEditHistory.pop();
+                previewEditCtx.putImageData(previewEditHistory[previewEditHistory.length - 1], 0, 0);
+                previewBaseEditState = previewEditCtx.getImageData(0, 0, previewEditCanvas.width, previewEditCanvas.height);
+            } else {
+                previewClearEdits();
+            }
+        }
+
+        function previewClearEdits() {
+            previewEditCtx.clearRect(0, 0, previewEditCanvas.width, previewEditCanvas.height);
+            previewEditHistory = [previewEditCtx.getImageData(0, 0, previewEditCanvas.width, previewEditCanvas.height)];
+            previewBaseEditState = null;
+        }
+
+        // 下載預覽圖片
+        function downloadPreviewImage() {
+            const filename = previewCanvas.downloadFilename || 'processed_image.jpg';
+
+            // 🔥 獲取當前品質設定
+            const quality = scalingQuality.value;
+            console.log(`🔽 下載JPG: 品質設定 ${quality}`);
+
+            // 創建合成canvas
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = previewCanvas.width;
+            finalCanvas.height = previewCanvas.height;
+            const finalCtx = finalCanvas.getContext('2d');
+
+            // 🔥 根據品質設定選擇Canvas設置
+            switch (quality) {
+                case 'ultra':
+                    setupUltraQualityCanvas(finalCtx);
+                    break;
+                case 'high':
+                    setupHighQualityCanvas(finalCtx);
+                    break;
+                case 'balanced':
+                    setupBalancedQualityCanvas(finalCtx);
+                    break;
+                case 'fast':
+                    setupFastQualityCanvas(finalCtx);
+                    break;
+                default:
+                    setupBalancedQualityCanvas(finalCtx);
+            }
+
+            // 繪製原始處理後的圖片
+            finalCtx.drawImage(previewCanvas, 0, 0);
+            // 繪製編輯內容
+            finalCtx.drawImage(previewEditCanvas, 0, 0);
+
+            // 🔥 新增：檢查是否需要縮放至 1000px (針對裁切模式的高解析度圖片)
+            // 注意：如果已經是裁切模式且已經在 executeCrop 中縮放過寬度，這裡就不應該再強制縮放長邊
+            // 除非使用者沒有經過裁切流程 (不太可能，因為 cropImage 模式下必須先裁切)
+            // 但為了保險起見，我們可以檢查 currentMode
+
+            let outputCanvas = finalCanvas;
+            const longSide = Math.max(finalCanvas.width, finalCanvas.height);
+
+            // 只有在非裁切模式下，或者裁切模式下寬度異常大時才執行此處的縮放
+            // 但根據新需求，裁切模式下寬度已經是 1000px，所以這裡應該跳過
+            if (currentMode !== 'cropImage' && longSide > 1000) {
+                console.log(`🔽 下載前縮放: 原始尺寸 ${finalCanvas.width}x${finalCanvas.height} -> 長邊限制 1000px`);
+                let newWidth, newHeight;
+                if (finalCanvas.width > finalCanvas.height) {
+                    newWidth = 1000;
+                    newHeight = (finalCanvas.height / finalCanvas.width) * 1000;
+                } else {
+                    newHeight = 1000;
+                    newWidth = (finalCanvas.width / finalCanvas.height) * 1000;
+                }
+
+                // 使用安全的高級縮放
+                outputCanvas = safeAdvancedImageScale(finalCanvas, newWidth, newHeight, quality);
+            }
+
+            // 🔥 根據品質選項決定JPEG品質
+            let jpegQuality = 0.98; // 預設高品質
+            switch (quality) {
+                case 'ultra':
+                    jpegQuality = 0.99; // 最高品質
+                    break;
+                case 'high':
+                    jpegQuality = 0.95; // 高品質
+                    break;
+                case 'balanced':
+                    jpegQuality = 0.90; // 平衡品質
+                    break;
+                case 'fast':
+                    jpegQuality = 0.80; // 快速模式較低品質
+                    break;
+            }
+
+            console.log(`🔽 下載JPG: 使用JPEG品質 ${jpegQuality}`);
+
+            outputCanvas.toBlob((blob) => {
+                if (blob) {
+                    const file = new File([blob], filename, { type: "image/jpeg" });
+                    console.log(`🔽 下載JPG: 檔案大小 ${(blob.size / 1024 / 1024).toFixed(2)} MB`);
+                    saveAs(file);
+                }
+            }, 'image/jpeg', jpegQuality);
+        }
+
+        // 下載PNG格式預覽圖片（最高畫質）
+        function downloadPreviewImageAsPNG() {
+            const filename = previewCanvas.downloadFilename || 'processed_image.png';
+
+            // 創建合成canvas
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = previewCanvas.width;
+            finalCanvas.height = previewCanvas.height;
+            const finalCtx = finalCanvas.getContext('2d');
+
+            // 設置高品質縮放
+            setupHighQualityCanvas(finalCtx);
+
+            // 繪製原始處理後的圖片
+            finalCtx.drawImage(previewCanvas, 0, 0);
+            // 繪製編輯內容
+            finalCtx.drawImage(previewEditCanvas, 0, 0);
+
+            finalCanvas.toBlob((blob) => {
+                if (blob) {
+                    const file = new File([blob], filename.replace(/\.[^/.]+$/, ".png"), { type: "image/png" });
+                    saveAs(file);
+                }
+            }, 'image/png');
+        }
+
+        function saveAs(blob) {
+            const a = document.createElement("a");
+            document.body.appendChild(a);
+            a.style.display = "none";
+            const url = window.URL.createObjectURL(blob);
+            a.href = url;
+            a.download = blob.name;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        // 新增：從預覽區重新處理圖片
+        async function reprocessPreviewImage(mode) {
+            if (previewArea.style.display !== 'block' || !previewCanvas.width) {
+                // 預覽區沒有圖片，不執行處理
+                return;
+            }
+
+            status.innerHTML = '正在重新處理預覽圖片...';
+
+            // 將預覽canvas的內容轉換為Blob，然後再轉換為File對象
+            previewCanvas.toBlob(async (blob) => {
+                if (blob) {
+                    const file = new File([blob], previewCanvas.downloadFilename || 'reprocessed_image.jpg', { type: 'image/jpeg' });
+                    try {
+                        let result = null;
+                        if (mode === 'resize320') {
+                            result = await processImageForPreview(file, 'resize320');
+                        } else if (mode === 'resize1080') {
+                            result = await processImageForPreview(file, 'resize1080');
+                        } else if (mode === 'addWatermark') {
+                            if (logoImage) {
+                                result = await processImageForPreview(file, 'addWatermark');
+                            } else {
+                                status.innerHTML += '<br>請先選擇 Logo 後再上傳圖片。';
+                                return;
+                            }
+                        } else if (mode === 'adaSpecial') {
+                            if (adaSpecialLogo) {
+                                result = await processImageForPreview(file, 'adaSpecial');
+                            } else {
+                                status.innerHTML += '<br>請先選擇阿達專用 Logo 後再上傳圖片。';
+                                return;
+                            }
+                        }
+
+                        if (result && result.canvas) {
+                            showPreview(result.canvas, file.name);
+                            status.innerHTML += '<br>預覽圖片重新處理完成！';
+                        }
+                    } catch (error) {
+                        console.error('重新處理預覽圖片錯誤:', error);
+                        status.innerHTML += '<br>重新處理失敗: ' + error.message;
+                    }
+                } else {
+                    status.innerHTML += '<br>無法從預覽區獲取圖片數據。';
+                }
+            }, 'image/jpeg');
+        }
+
+
+
+        function handleCropFileSelect(event) {
+            console.log('handleCropFileSelect triggered', event);
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                console.log('File is an image:', file.name);
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    console.log('FileReader onload triggered');
+                    originalCropImage = new Image();
+                    originalCropImage.onload = () => {
+                        console.log('originalCropImage onload triggered', originalCropImage.width, originalCropImage.height);
+                        let displayWidth = originalCropImage.width;
+                        let displayHeight = originalCropImage.height;
+                        let scaleFactor = 1; // 新增：縮放因子
+
+                        // 如果圖片寬度或高度超過最大限制，則按比例縮放
+                        if (displayWidth > MAX_CROP_WIDTH || displayHeight > MAX_CROP_HEIGHT) {
+                            const aspectRatio = displayWidth / displayHeight;
+                            if (displayWidth / MAX_CROP_WIDTH > displayHeight / MAX_CROP_HEIGHT) {
+                                scaleFactor = MAX_CROP_WIDTH / displayWidth;
+                                displayWidth = MAX_CROP_WIDTH;
+                                displayHeight = displayWidth / aspectRatio;
+                            } else {
+                                scaleFactor = MAX_CROP_HEIGHT / displayHeight;
+                                displayHeight = MAX_CROP_HEIGHT;
+                                displayWidth = displayHeight * aspectRatio;
+                            }
+                        }
+
+                        cropCanvas.width = displayWidth;
+                        cropCanvas.height = displayHeight;
+                        cropCtx.drawImage(originalCropImage, 0, 0, displayWidth, displayHeight);
+
+                        cropSelectionCanvas.width = displayWidth;
+                        cropSelectionCanvas.height = displayHeight;
+                        cropSelectionCtx.clearRect(0, 0, cropSelectionCanvas.width, cropSelectionCanvas.height);
+
+                        // 重置裁切選區
+                        cropSelection = { x: 0, y: 0, width: 0, height: 0, scaleFactor: scaleFactor }; // 新增：儲存縮放因子
+                        isCropping = false;
+                        cropImageArea.style.display = 'block'; // 確保裁切區域顯示
+                    };
+                    originalCropImage.onerror = () => {
+                        console.error('Error loading originalCropImage');
+                        status.innerHTML += '<br>圖片載入失敗，請檢查圖片檔案。';
+                    };
+                    originalCropImage.src = e.target.result;
+                    console.log('originalCropImage.src set');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function startCropDrawing(e) {
+            console.log('startCropDrawing triggered');
+            isCropping = true;
+            [cropStartX, cropStartY] = [e.offsetX, e.offsetY];
+            cropEndX = cropStartX;
+            cropEndY = cropStartY;
+        }
+
+        function drawCropSelection(e) {
+            if (!isCropping) return;
+            cropEndX = e.offsetX;
+            cropEndY = e.offsetY;
+
+            cropSelectionCtx.clearRect(0, 0, cropSelectionCanvas.width, cropSelectionCanvas.height);
+
+            const x = Math.min(cropStartX, cropEndX);
+            const y = Math.min(cropStartY, cropEndY);
+            const width = Math.abs(cropEndX - cropStartX);
+            const height = Math.abs(cropEndY - cropStartY);
+
+            // 繪製半透明遮罩 (四個矩形覆蓋選區外)
+            cropSelectionCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            // Top rectangle
+            cropSelectionCtx.fillRect(0, 0, cropSelectionCanvas.width, y);
+            // Bottom rectangle
+            cropSelectionCtx.fillRect(0, y + height, cropSelectionCanvas.width, cropSelectionCanvas.height - (y + height));
+            // Left rectangle
+            cropSelectionCtx.fillRect(0, y, x, height);
+            // Right rectangle
+            cropSelectionCtx.fillRect(x + width, y, cropSelectionCanvas.width - (x + width), height);
+
+            // 繪製選區邊框
+            cropSelectionCtx.strokeStyle = 'red';
+            cropSelectionCtx.lineWidth = 2;
+            cropSelectionCtx.strokeRect(x, y, width, height);
+
+            cropSelection = { x, y, width, height, scaleFactor: cropSelection.scaleFactor };
+        }
+
+        function stopCropDrawing() {
+            isCropping = false;
+        }
+
+        function executeCrop() {
+            if (!originalCropImage || cropSelection.width === 0 || cropSelection.height === 0) {
+                alert('請先選擇圖片並繪製裁切範圍。');
+                return;
+            }
+
+            // 🔥 修正：使用原始圖片的真實尺寸進行裁切，而不是預覽尺寸
+            // cropSelection 紀錄的是在 canvas (預覽圖) 上的座標
+            // 我們需要將其轉換回原始圖片的座標
+
+            // 1. 計算預覽圖與原始圖的比例
+            // cropCanvas.width 是預覽 canvas 的寬度
+            // originalCropImage.width 是原始圖片的寬度
+            // 但注意：在 handleCropFileSelect 中，我們可能已經對顯示進行了縮放 (scaleFactor)
+            // 實際上，cropSelection.scaleFactor 已經紀錄了 (預覽寬度 / 原始寬度) 的比例嗎？
+            // 讓我們重新檢查 handleCropFileSelect 的邏輯
+
+            // 在 handleCropFileSelect 中:
+            // scaleFactor = MAX_CROP_WIDTH / displayWidth; (如果需要縮小顯示)
+            // cropCanvas.width = displayWidth (這是縮小後的顯示寬度)
+            // cropCtx.drawImage(originalCropImage, ..., displayWidth, displayHeight)
+
+            // 所以，cropSelection 上的座標是基於 "縮小後的顯示寬度"
+            // 要拿到原始圖片的座標，我們需要除以 scaleFactor (如果 scaleFactor 是 顯示/原始)
+            // 等等，handleCropFileSelect 中的 scaleFactor 定義是：
+            // if (displayWidth > MAX_CROP_WIDTH ...) { scaleFactor = MAX_CROP_WIDTH / original_width }
+            // 所以 cropSelection.x / scaleFactor 應該就是原始座標
+
+            // 讓我們確認一下 cropSelection.scaleFactor 的值
+            const scale = cropSelection.scaleFactor || 1;
+
+            const sourceX = cropSelection.x / scale;
+            const sourceY = cropSelection.y / scale;
+            const sourceWidth = cropSelection.width / scale;
+            const sourceHeight = cropSelection.height / scale;
+
+            console.log(`裁切資訊: 
+                預覽選區: ${cropSelection.x}, ${cropSelection.y}, ${cropSelection.width}x${cropSelection.height}
+                縮放因子: ${scale}
+                原始座標: ${sourceX}, ${sourceY}, ${sourceWidth}x${sourceHeight}
+                原始圖片: ${originalCropImage.width}x${originalCropImage.height}
+            `);
+
+            const croppedCanvas = document.createElement('canvas');
+            // 設定 canvas 為原始解析度的大小
+            croppedCanvas.width = sourceWidth;
+            croppedCanvas.height = sourceHeight;
+            const croppedCtx = croppedCanvas.getContext('2d');
+
+            // 使用高品質設定
+            setupHighQualityCanvas(croppedCtx);
+
+            croppedCtx.drawImage(
+                originalCropImage,
+                sourceX, sourceY, sourceWidth, sourceHeight, // 來源座標 (原始解析度)
+                0, 0, sourceWidth, sourceHeight              // 目標座標 (原始解析度)
+            );
+
+            // 🔥 新增：自動將裁切後的圖片寬度縮至 1000px
+            let finalCanvas = croppedCanvas;
+            if (croppedCanvas.width > 1000) {
+                console.log(`裁切後自動縮放: 原始寬度 ${croppedCanvas.width} -> 目標寬度 1000px`);
+                const newWidth = 1000;
+                const newHeight = (croppedCanvas.height / croppedCanvas.width) * 1000;
+
+                // 使用安全的高級縮放 (預設使用 balanced 品質)
+                finalCanvas = safeAdvancedImageScale(croppedCanvas, newWidth, newHeight, 'balanced');
+            }
+
+            // 將裁切後的圖片顯示在預覽區
+            showPreview(finalCanvas, 'cropped_image.jpg');
+            status.innerHTML = '圖片裁切完成！已自動調整寬度為 1000px。';
+
+            // 裁切完成後，隱藏裁切區域並重置狀態
+            originalCropImage = null;
+            // cropFileInput.value = ''; // 移除，因為已統一使用 fileInput
+            cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+            cropSelectionCtx.clearRect(0, 0, cropSelectionCanvas.width, cropSelectionCanvas.height);
+            cropSelection = { x: 0, y: 0, width: 0, height: 0 };
+            isCropping = false;
+            cropImageArea.style.display = 'none';
+
+            // 將模式切換回預設的 resize320，並更新按鈕狀態
+            // setMode('resize320'); // 移除自動切換模式，讓使用者自行選擇下一步
+            dropZone.style.display = 'none'; // 確保拖曳區隱藏，因為預覽區會顯示
+        }
+
+        function cancelCrop() {
+            originalCropImage = null;
+            // cropFileInput.value = ''; // 移除，因為已統一使用 fileInput
+            cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
+            cropSelectionCtx.clearRect(0, 0, cropSelectionCanvas.width, cropSelectionCanvas.height);
+            cropSelection = { x: 0, y: 0, width: 0, height: 0 };
+            isCropping = false;
+            // setMode('resize320'); // 移除自動切換模式，讓使用者自行選擇下一步 // 取消後，切換回預設模式
+        }
+
+        // 新增的截圖並排功能腳本
+        const fileInput2 = document.getElementById('fileInput2');
+        const fileCount = document.getElementById('fileCount');
+        const processButton = document.getElementById('processButton');
+        const downloadButton = document.getElementById('downloadButton');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const imageList = document.getElementById('imageList');
+        const editCanvas = document.getElementById('editCanvas');
+        const editCtx = editCanvas.getContext('2d');
+        const rectangleTool = document.getElementById('rectangleTool');
+        const arrowTool = document.getElementById('arrowTool');
+        const undoButton = document.getElementById('undoButton');
+        const clearButton = document.getElementById('clearButton');
+        const clearAllButton = document.getElementById('clearAllButton');
+
+        const MAX_WIDTH = 996;
+        const MAX_HEIGHT = 996;
+        const SPACING = 2;
+        const MAX_IMAGES = 4;
+        const BORDER_WIDTH = 2;
+
+        let uploadedImages = [];
+        let isDrawing = false;
+        let startX, startY;
+        let currentTool = null;
+        let editHistory = [];
+        let baseEditState = null;
+
+        fileInput2.addEventListener('change', handleFileSelect);
+        processButton.addEventListener('click', processImages);
+        downloadButton.addEventListener('click', downloadProcessedImage);
+        rectangleTool.addEventListener('click', () => {
+            currentTool = 'rectangle';
+            editCanvas.style.cursor = 'crosshair';
+        });
+        arrowTool.addEventListener('click', () => {
+            currentTool = 'arrow';
+            editCanvas.style.cursor = 'crosshair';
+        });
+        undoButton.addEventListener('click', undo);
+        clearButton.addEventListener('click', clearEdits);
+        clearAllButton.addEventListener('click', clearAllImages);
+
+        editCanvas.addEventListener('mousedown', startDrawing);
+        editCanvas.addEventListener('mousemove', draw);
+        editCanvas.addEventListener('mouseup', stopDrawing);
+        editCanvas.addEventListener('mouseout', stopDrawing);
+
+        function updateFileInputAndCount() {
+            const remainingSlots = MAX_IMAGES - uploadedImages.length;
+            fileInput2.accept = remainingSlots > 0 ? "image/*" : "";
+            fileCount.textContent = `可再選擇 ${remainingSlots} 張圖片`;
+            clearAllButton.style.display = uploadedImages.length > 0 ? 'inline-block' : 'none';
+        }
+
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files).slice(0, MAX_IMAGES - uploadedImages.length);
+
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function () {
+                        uploadedImages.push(img);
+                        updateImageList();
+                        updateFileInputAndCount();
+                    }
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function createImageItem(img, index) {
+            const div = document.createElement('div');
+            div.className = 'image-item';
+            div.draggable = true;
+            div.innerHTML = `
+                <img src="${img.src}" alt="Image ${index + 1}">
+                <button class="delete-button">刪除</button>
+            `;
+
+            div.addEventListener('dragstart', dragStart);
+            div.addEventListener('dragend', dragEnd);
+            div.addEventListener('dragenter', dragEnter);
+            div.addEventListener('dragleave', dragLeave);
+            div.addEventListener('dragover', dragOver);
+            div.addEventListener('drop', drop);
+            div.querySelector('.delete-button').addEventListener('click', () => deleteImage(index));
+
+            return div;
+        }
+
+        function dragStart(e) {
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.index);
+        }
+
+        function dragEnd(e) {
+            this.classList.remove('dragging');
+            document.querySelectorAll('.image-item').forEach(item => {
+                item.classList.remove('drag-over');
+            });
+        }
+
+        function dragEnter(e) {
+            e.preventDefault();
+            if (!this.classList.contains('dragging')) {
+                this.classList.add('drag-over');
+            }
+        }
+
+        function dragLeave(e) {
+            this.classList.remove('drag-over');
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            const draggable = document.querySelector('.dragging');
+            if (this !== draggable) {
+                const allItems = [...imageList.querySelectorAll('.image-item')];
+                const draggedIndex = allItems.indexOf(draggable);
+                const targetIndex = allItems.indexOf(this);
+                if (draggedIndex < targetIndex) {
+                    this.parentNode.insertBefore(draggable, this.nextSibling);
+                } else {
+                    this.parentNode.insertBefore(draggable, this);
+                }
+                updateImageOrder();
+            }
+            this.classList.remove('drag-over');
+        }
+
+        function updateImageOrder() {
+            const newOrder = Array.from(imageList.children).map(item => item.querySelector('img').src);
+            uploadedImages = uploadedImages.sort((a, b) => newOrder.indexOf(a.src) - newOrder.indexOf(b.src));
+        }
+
+        function deleteImage(index) {
+            uploadedImages.splice(index, 1);
+            updateImageList();
+            updateFileInputAndCount();
+        }
+
+        function updateImageList() {
+            imageList.innerHTML = '';
+            uploadedImages.forEach((img, index) => {
+                const imageItem = createImageItem(img, index);
+                imageItem.dataset.index = index;
+                imageList.appendChild(imageItem);
+            });
+        }
+
+        function clearAllImages() {
+            uploadedImages = [];
+            updateImageList();
+            updateFileInputAndCount();
+            fileInput2.value = '';
+        }
+
+        function processImages() {
+            if (uploadedImages.length === 0) {
+                alert('請先上傳圖片');
+                return;
+            }
+            const newOrder = Array.from(imageList.children).map(item => item.querySelector('img').src);
+            uploadedImages = uploadedImages.sort((a, b) => newOrder.indexOf(a.src) - newOrder.indexOf(b.src));
+            arrangeImages(uploadedImages);
+            downloadButton.style.display = 'block';
+
+            clearEdits();
+            editHistory = [editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height)];
+        }
+
+        function arrangeImages(images) {
+            // 🔥 獲取當前品質設定
+            const quality = scalingQuality.value;
+            console.log(`📐 截圖並排: 品質設定 ${quality}`);
+
+            let totalWidth = 0;
+            let maxHeight = 0;
+
+            // 第一步：為每張圖片添加黑框並計算尺寸
+            const processedImages = images.map(img => {
+                // 新增：檢查並調整圖片高度
+                let processedImg = img;
+
+                // 如果原始圖片高度超過900px，先調整為690px
+                if (img.height > 900) {
+                    // 🔥 使用安全的高級縮放算法
+                    const sourceCanvas = document.createElement('canvas');
+                    sourceCanvas.width = img.width;
+                    sourceCanvas.height = img.height;
+                    const sourceCtx = sourceCanvas.getContext('2d');
+                    setupHighQualityCanvas(sourceCtx);
+                    sourceCtx.drawImage(img, 0, 0);
+
+                    // 計算按690px高度縮放後的新尺寸（保持比例）
+                    const heightRatio = 690 / img.height;
+                    const newImgWidth = img.width * heightRatio;
+                    const newImgHeight = 690;
+
+                    const heightCanvas = safeAdvancedImageScale(sourceCanvas, newImgWidth, newImgHeight, quality);
+
+                    // 創建新的Image對象用於後續處理
+                    processedImg = {
+                        width: newImgWidth,
+                        height: newImgHeight,
+                        canvas: heightCanvas
+                    };
+                }
+
+                // 使用處理後的圖片進行後續縮放計算
+                const aspectRatio = processedImg.width / processedImg.height;
+                let newWidth = Math.min(MAX_WIDTH / images.length - SPACING, processedImg.width);
+                let newHeight = newWidth / aspectRatio;
+
+                if (newHeight > MAX_HEIGHT) {
+                    newHeight = MAX_HEIGHT;
+                    newWidth = newHeight * aspectRatio;
+                }
+
+                // 🔥 創建縮放後的canvas，使用安全的高級縮放算法
+                let scaledCanvas;
+
+                if (processedImg.canvas) {
+                    // 如果已經調整過高度，使用調整後的canvas
+                    scaledCanvas = safeAdvancedImageScale(processedImg.canvas, newWidth, newHeight, quality);
+                } else {
+                    // 使用原始圖片
+                    const sourceCanvas = document.createElement('canvas');
+                    sourceCanvas.width = processedImg.width;
+                    sourceCanvas.height = processedImg.height;
+                    const sourceCtx = sourceCanvas.getContext('2d');
+                    setupHighQualityCanvas(sourceCtx);
+                    sourceCtx.drawImage(processedImg, 0, 0);
+
+                    scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
+                }
+
+                // 為縮放後的圖片添加黑框
+                const borderedCanvas = addBlackBorder(scaledCanvas);
+
+                totalWidth += borderedCanvas.width;
+                maxHeight = Math.max(maxHeight, borderedCanvas.height);
+
+                return { canvas: borderedCanvas, width: borderedCanvas.width, height: borderedCanvas.height };
+            });
+
+            // 設置最終畫布尺寸
+            canvas.width = Math.min(MAX_WIDTH, totalWidth + SPACING * (images.length - 1));
+            canvas.height = Math.min(MAX_HEIGHT, maxHeight);
+
+            // 填充白色背景
+            let x = 0;
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 第二步：將帶黑框的圖片並排
+            processedImages.forEach(({ canvas: imgCanvas, width, height }) => {
+                const y = (canvas.height - height) / 2;
+                ctx.drawImage(imgCanvas, x, y);
+                x += width + SPACING;
+            });
+
+            resizeEditCanvas();
+
+            document.getElementById('editTools').style.display = 'block';
+        }
+
+        function resizeEditCanvas() {
+            editCanvas.width = canvas.width;
+            editCanvas.height = canvas.height;
+            editCanvas.style.display = 'block';
+        }
+
+        function startDrawing(e) {
+            if (!currentTool) return;
+            isDrawing = true;
+            [startX, startY] = [e.offsetX, e.offsetY];
+            baseEditState = editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height);
+        }
+
+        function stopDrawing() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            editHistory.push(editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height));
+        }
+
+        function draw(e) {
+            if (!isDrawing || !currentTool) return;
+            const [endX, endY] = [e.offsetX, e.offsetY];
+
+            editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height);
+            if (editHistory.length > 0) {
+                editCtx.putImageData(editHistory[editHistory.length - 1], 0, 0);
+            }
+
+            editCtx.beginPath();
+            editCtx.strokeStyle = 'red';
+            editCtx.lineWidth = 3;
+
+            if (currentTool === 'rectangle') {
+                // 🌟 添加矩形陰影效果 - 修復缺角問題
+                editCtx.save();
+                editCtx.strokeStyle = 'rgba(0,0,0,0.4)';
+                editCtx.lineWidth = 3; // 🔧 修復：調整線寬避免陰影間隙 (改為3px)
+                editCtx.lineCap = 'butt'; // 🔧 修復：使用butt避免圓角導致的缺角
+                editCtx.lineJoin = 'miter'; // 🔧 修復：使用miter確保尖角
+
+                // 繪製陰影矩形
+                editCtx.beginPath();
+                editCtx.rect(startX + 3, startY + 3, endX - startX, endY - startY);
+                editCtx.stroke();
+
+                editCtx.restore();
+
+                // 繪製主矩形 - 確保紅色且無缺角
+                editCtx.save();
+                editCtx.strokeStyle = 'red';
+                editCtx.lineWidth = 2; // 🔧 修復：調整線寬避免陰影間隙 (改為2px)
+                editCtx.lineCap = 'butt'; // 🔧 修復：使用butt避免圓角導致的缺角
+                editCtx.lineJoin = 'miter'; // 🔧 修復：使用miter確保尖角
+
+                editCtx.beginPath();
+                editCtx.rect(startX, startY, endX - startX, endY - startY);
+                editCtx.stroke();
+
+                editCtx.restore();
+            } else if (currentTool === 'arrow') {
+                drawArrow(startX, startY, endX, endY);
+                // 不需要額外的stroke，因為箭頭函數已經處理了所有繪製
+            } else if (currentTool === 'mosaic') {
+                const x = Math.min(startX, endX);
+                const y = Math.min(startY, endY);
+                const width = Math.abs(endX - startX);
+                const height = Math.abs(endY - startY);
+                drawMosaic(x, y, width, height);
+            }
+
+            baseEditState = editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height);
+        }
+
+        function drawArrow(fromX, fromY, toX, toY) {
+            const headLength = 25;
+            const dx = toX - fromX;
+            const dy = toY - fromY;
+            const angle = Math.atan2(dy, dx);
+
+            // 💎 立體陰影風格 + 填充式三角箭頭 + 紅色主題 (修復所有問題)
+
+            // 繪製陰影效果
+            editCtx.save();
+            editCtx.strokeStyle = 'rgba(0,0,0,0.3)';
+            editCtx.fillStyle = 'rgba(0,0,0,0.3)';
+            editCtx.lineWidth = 3; // 🔧 修復：調整線寬避免陰影間隙 (改為3px)
+            editCtx.lineCap = 'round';
+
+            // 陰影主線 - 修復：停在三角形基部而非尖端
+            editCtx.beginPath();
+            editCtx.moveTo(fromX + 2, fromY + 2);
+            editCtx.lineTo(toX - headLength * 0.7 * Math.cos(angle) + 2, toY - headLength * 0.7 * Math.sin(angle) + 2); // 🔧 修復：線條停在三角形基部
+            editCtx.stroke();
+
+            // 陰影箭頭頭部 (填充三角形)
+            editCtx.beginPath();
+            editCtx.moveTo(toX + 2, toY + 2);
+            editCtx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6) + 2,
+                toY - headLength * Math.sin(angle - Math.PI / 6) + 2);
+            editCtx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6) + 2,
+                toY - headLength * Math.sin(angle + Math.PI / 6) + 2);
+            editCtx.closePath();
+            editCtx.fill();
+
+            editCtx.restore();
+
+            // 繪製主箭頭
+            editCtx.save();
+            editCtx.strokeStyle = 'red';
+            editCtx.fillStyle = 'red';
+            editCtx.lineWidth = 3; // 🔧 修復：增加線寬完全消除間隙 (改為3px)
+            editCtx.lineCap = 'round';
+            editCtx.lineJoin = 'round';
+
+            // 主線 - 修復：停在三角形基部而非尖端
+            editCtx.beginPath();
+            editCtx.moveTo(fromX, fromY);
+            editCtx.lineTo(toX - headLength * 0.7 * Math.cos(angle), toY - headLength * 0.7 * Math.sin(angle)); // 🔧 修復：線條停在三角形基部
+            editCtx.stroke();
+
+            // 填充式三角箭頭頭部
+            editCtx.beginPath();
+            editCtx.moveTo(toX, toY);
+            editCtx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6),
+                toY - headLength * Math.sin(angle - Math.PI / 6));
+            editCtx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6),
+                toY - headLength * Math.sin(angle + Math.PI / 6));
+            editCtx.closePath();
+            editCtx.fill();
+
+            editCtx.restore();
+        }
+
+        function undo() {
+            if (editHistory.length > 1) {
+                editHistory.pop();
+                editCtx.putImageData(editHistory[editHistory.length - 1], 0, 0);
+                baseEditState = editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height);
+            } else {
+                clearEdits();
+            }
+        }
+
+        function clearEdits() {
+            editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height);
+            editHistory = [editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height)];
+            baseEditState = null;
+        }
+
+        function downloadProcessedImage() {
+            // 🔥 獲取當前品質設定
+            const quality = scalingQuality.value;
+            console.log(`🔽 下載截圖並排: 品質設定 ${quality}`);
+
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = canvas.width;
+            finalCanvas.height = canvas.height;
+            const finalCtx = finalCanvas.getContext('2d');
+
+            // 🔥 根據品質設定選擇Canvas設置
+            switch (quality) {
+                case 'ultra':
+                    setupUltraQualityCanvas(finalCtx);
+                    break;
+                case 'high':
+                    setupHighQualityCanvas(finalCtx);
+                    break;
+                case 'balanced':
+                    setupBalancedQualityCanvas(finalCtx);
+                    break;
+                case 'fast':
+                    setupFastQualityCanvas(finalCtx);
+                    break;
+                default:
+                    setupBalancedQualityCanvas(finalCtx);
+            }
+
+            finalCtx.drawImage(canvas, 0, 0);
+            finalCtx.drawImage(editCanvas, 0, 0);
+
+            // 🔥 根據品質選項決定JPEG品質
+            let jpegQuality = 0.98; // 預設高品質
+            switch (quality) {
+                case 'ultra':
+                    jpegQuality = 0.99; // 最高品質
+                    break;
+                case 'high':
+                    jpegQuality = 0.95; // 高品質
+                    break;
+                case 'balanced':
+                    jpegQuality = 0.90; // 平衡品質
+                    break;
+                case 'fast':
+                    jpegQuality = 0.80; // 快速模式較低品質
+                    break;
+            }
+
+            console.log(`🔽 下載截圖並排: 使用JPEG品質 ${jpegQuality}`);
+
+            const link = document.createElement('a');
+            link.download = 'processed_image.jpg';
+            link.href = finalCanvas.toDataURL('image/jpeg', jpegQuality);
+            link.click();
+        }
+
+        window.addEventListener('load', function () {
+            setMode('cropImage');
+            updateFileInputAndCount();
+            document.getElementById('editTools').style.display = 'none';
+            updateQualityDescription(); // 初始化品質描述
+        });
+
+        const mosaicTool = document.getElementById('mosaicTool');
+        let isMosaicMode = false;
+        const MOSAIC_SIZE = 10;
+
+        mosaicTool.addEventListener('click', () => {
+            currentTool = 'mosaic';
+            isMosaicMode = true;
+            editCanvas.style.cursor = 'crosshair';
+        });
+
+        function drawMosaic(x, y, width, height) {
+            const imageData = ctx.getImageData(x, y, width, height);
+            for (let i = 0; i < width; i += MOSAIC_SIZE) {
+                for (let j = 0; j < height; j += MOSAIC_SIZE) {
+                    const pixelData = getAverageColor(imageData, i, j, MOSAIC_SIZE, width, height);
+                    for (let mx = 0; mx < MOSAIC_SIZE && i + mx < width; mx++) {
+                        for (let my = 0; my < MOSAIC_SIZE && j + my < height; my++) {
+                            const index = ((j + my) * width + (i + mx)) * 4;
+                            imageData.data[index] = pixelData[0];
+                            imageData.data[index + 1] = pixelData[1];
+                            imageData.data[index + 2] = pixelData[2];
+                        }
+                    }
+                }
+            }
+            editCtx.putImageData(imageData, x, y);
+        }
+
+        function getAverageColor(imageData, startX, startY, size, width, height) {
+            let r = 0, g = 0, b = 0, count = 0;
+            for (let i = 0; i < size && startX + i < width; i++) {
+                for (let j = 0; j < size && startY + j < height; j++) {
+                    const index = ((startY + j) * width + (startX + i)) * 4;
+                    r += imageData.data[index];
+                    g += imageData.data[index + 1];
+                    b += imageData.data[index + 2];
+                    count++;
+                }
+            }
+            return [Math.round(r / count), Math.round(g / count), Math.round(b / count)];
+        }
+
+        let lastX, lastY;
+        editCanvas.addEventListener('mousemove', (e) => {
+            lastX = e.offsetX;
+            lastY = e.offsetY;
+        });
+    </script>
+
+    <style>
+        #minimax-floating-ball {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 12px;
+            background: #222222;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            color: #F8F8F8;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            z-index: 9999;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        #minimax-floating-ball:hover {
+            transform: translateY(-2px);
+            background: #383838;
+        }
+
+        .minimax-ball-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .minimax-logo-wave {
+            width: 26px;
+            height: 22px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='22' viewBox='0 0 26 22' fill='none'%3E%3Cg clip-path='url(%23clip0_3442_102412)'%3E%3Cpath d='M12.8405 14.6775C12.8405 14.9897 13.0932 15.2424 13.4055 15.2424C13.7178 15.2424 13.9705 14.9897 13.9705 14.6775V2.98254C13.9705 1.88957 13.0809 1 11.9879 1C10.895 1 10.0054 1.88957 10.0054 2.98254V11.566V17.1068C10.0054 17.5773 9.62327 17.9594 9.1528 17.9594C8.68233 17.9594 8.30021 17.5773 8.30021 17.1068V8.04469C8.30021 6.95172 7.41063 6.06215 6.31767 6.06215C5.22471 6.06215 4.33513 6.95172 4.33513 8.04469V11.8855C4.33513 12.3559 3.953 12.7381 3.48254 12.7381C3.01207 12.7381 2.62994 12.3559 2.62994 11.8855V10.4936C2.62994 10.1813 2.37725 9.92861 2.06497 9.92861C1.7527 9.92861 1.5 10.1813 1.5 10.4936V11.8855C1.5 12.9784 2.38957 13.868 3.48254 13.868C4.5755 13.868 5.46508 12.9784 5.46508 11.8855V8.04469C5.46508 7.57422 5.8472 7.19209 6.31767 7.19209C6.78814 7.19209 7.17026 7.57422 7.17026 8.04469V17.1068C7.17026 18.1998 8.05984 19.0894 9.1528 19.0894C10.2458 19.0894 11.1353 18.1998 11.1353 17.1068V2.98254C11.1353 2.51207 11.5175 2.12994 11.9879 2.12994C12.4584 2.12994 12.8405 2.51207 12.8405 2.98254V14.6775Z' fill='%23F8F8F8'/%3E%3Cpath d='M23.3278 6.06215C22.2348 6.06215 21.3452 6.95172 21.3452 8.04469V15.6143C21.3452 16.0847 20.98631 16.4669 20.4926 16.4669C20.0222 16.4669 19.6401 16.0847 19.6401 15.6143V2.98254C19.6401 1.88957 18.7505 1 17.6575 1C16.5645 1 15.675 1.88957 15.675 2.98254V19.0175C15.675 19.4879 15.2928 19.8701 14.8224 19.8701C14.3519 19.8701 13.9698 19.4879 13.9698 19.0175V17.0329C13.9698 16.7206 13.7171 16.4679 13.4048 16.4679C13.0925 16.4679 12.8398 16.7206 12.8398 17.0329V19.0175C12.8398 20.1104 13.7294 21 14.8224 21C15.9153 21 16.8049 20.1104 16.8049 19.0175V2.98254C16.8049 2.51207 17.187 2.12994 17.6575 2.12994C18.128 2.12994 18.5101 2.51207 18.5101 2.98254V15.6143C18.5101 16.7072 19.3997 17.5968 20.4926 17.5968C21.5856 17.5968 22.4752 16.7072 22.4752 15.6143V8.04469C22.4752 7.57422 22.8573 7.19209 23.3278 7.19209C23.7982 7.19209 24.1804 7.57422 24.1804 8.04469V14.6775C24.1804 14.9897 24.4331 15.2424 24.7453 15.2424C25.0576 15.2424 25.3103 14.9897 25.3103 14.6775V8.04469C25.3103 6.95172 24.4207 6.06215 23.3278 6.06215Z' fill='%23F8F8F8'/%3E%3C/g%3E%3Cdefs%3E%3CclipPath id='clip0_3442_102412'%3E%3Crect width='25' height='22' fill='white' transform='translate(0.5)'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .minimax-ball-text {
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .minimax-close-icon {
+            margin-left: 8px;
+            font-size: 16px;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
+
+        .minimax-close-icon:hover {
+            opacity: 1;
+        }
+    </style>
+    <div id="minimax-floating-ball">
+        <div class="minimax-ball-content">
+            <div class="minimax-logo-wave"></div>
+            <span class="minimax-ball-text">Created by MiniMax Agent</span>
+        </div>
+        <div class="minimax-close-icon">×</div>
+    </div>
+    <script>
+        // Initialize floating ball functionality
+        function initFloatingBall() {
+            const ball = document.getElementById('minimax-floating-ball');
+            if (!ball) return;
+
+            // Initial animation
+            ball.style.opacity = '0';
+            ball.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                ball.style.opacity = '1';
+                ball.style.transform = 'translateY(0)';
+            }, 500);
+
+            // Handle logo click
+            const ballContent = ball.querySelector('.minimax-ball-content');
+            ballContent.addEventListener('click', function (e) {
+                e.stopPropagation();
+                window.open('https://agent.minimax.io/agent', '_blank');
+                ball.style.transform = 'scale(0.985)';
+                setTimeout(() => {
+                    ball.style.transform = 'scale(1)';
+                }, 100);
+            });
+
+            // Handle close button click
+            const closeIcon = ball.querySelector('.minimax-close-icon');
+            closeIcon.addEventListener('click', function (e) {
+                e.stopPropagation();
+                ball.style.opacity = '0';
+                ball.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    ball.style.display = 'none';
+                }, 300);
+            });
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', initFloatingBall); 
+    </script>
+
+</body>
+
+</html>
