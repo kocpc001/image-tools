@@ -329,6 +329,7 @@
         <div id="editTools">
             <button id="rectangleTool">矩形工具</button>
             <button id="arrowTool">箭頭工具</button>
+            <button id="watermarkTool">浮水印</button>
             <button id="mosaicTool">馬賽克工具</button>
             <button id="undoButton">復原</button>
             <button id="clearButton">清除所有編輯</button>
@@ -351,6 +352,7 @@
         <div id="borderlessEditTools">
             <button id="borderlessRectangleTool">矩形工具</button>
             <button id="borderlessArrowTool">箭頭工具</button>
+            <button id="borderlessWatermarkTool">浮水印</button>
             <button id="borderlessMosaicTool">馬賽克工具</button>
             <button id="borderlessUndoButton">復原</button>
             <button id="borderlessClearButton">清除所有編輯</button>
@@ -712,6 +714,7 @@
         const borderlessEditCtx = borderlessEditCanvas.getContext('2d');
         const borderlessRectangleTool = document.getElementById('borderlessRectangleTool');
         const borderlessArrowTool = document.getElementById('borderlessArrowTool');
+        const borderlessWatermarkTool = document.getElementById('borderlessWatermarkTool');
         const borderlessMosaicTool = document.getElementById('borderlessMosaicTool');
         const borderlessUndoButton = document.getElementById('borderlessUndoButton');
         const borderlessClearButton = document.getElementById('borderlessClearButton');
@@ -1685,7 +1688,15 @@
                         cropLogoImage.onload = function () {
                             // Save to localStorage
                             localStorage.setItem('cropWatermarkData', event.target.result);
-                            applyWatermarkToPreview();
+
+                            // Determine which mode is active and apply watermark accordingly
+                            if (document.getElementById('previewArea').style.display !== 'none') {
+                                applyWatermarkToPreview();
+                            } else if (document.getElementById('screenshotArrange').style.display !== 'none') {
+                                applyWatermarkToArrange(cropLogoImage);
+                            } else if (document.getElementById('borderlessScreenshotArrange').style.display !== 'none') {
+                                applyWatermarkToBorderlessArrange(cropLogoImage);
+                            }
                         };
                         cropLogoImage.src = event.target.result;
                     };
@@ -1948,6 +1959,7 @@
         const editCtx = editCanvas.getContext('2d');
         const rectangleTool = document.getElementById('rectangleTool');
         const arrowTool = document.getElementById('arrowTool');
+        const watermarkTool = document.getElementById('watermarkTool');
         const undoButton = document.getElementById('undoButton');
         const clearButton = document.getElementById('clearButton');
         const clearAllButton = document.getElementById('clearAllButton');
@@ -1976,6 +1988,29 @@
             currentTool = 'arrow';
             editCanvas.style.cursor = 'crosshair';
         });
+        watermarkTool.addEventListener('click', () => {
+            // 檢查是否有已儲存的浮水印
+            const savedWatermark = localStorage.getItem('cropWatermarkData');
+            if (savedWatermark) {
+                const img = new Image();
+                img.onload = () => {
+                    applyWatermarkToArrange(img);
+                };
+                img.src = savedWatermark;
+            } else {
+                // 如果沒有，觸發文件選擇
+                previewWatermarkInput.click();
+            }
+        });
+        // 監聽 previewWatermarkInput 的變化，以便在選擇後應用於並排模式
+        // 注意：這裡需要一個機制來區分是預覽模式還是並排模式觸發的
+        // 簡單解法：在 previewWatermarkInput 的 change 事件中，檢查當前模式
+        // 但因為 previewWatermarkInput 已經綁定了 applyWatermarkToPreview，
+        // 我們可能需要一個新的 input 或者修改現有的邏輯。
+        // 為了簡單起見，我們重用 previewWatermarkInput，但在其 change handler 中判斷
+        // 或者，我們直接在這裡添加一個專用的 handler，但這會導致重複綁定
+        // 更好的方法：創建一個通用的處理函數
+
         undoButton.addEventListener('click', undo);
         clearButton.addEventListener('click', clearEdits);
         clearAllButton.addEventListener('click', clearAllImages);
@@ -2001,6 +2036,7 @@
                     const img = new Image();
                     img.src = e.target.result;
                     img.onload = function () {
+                        img._uid = Date.now() + '-' + Math.random().toString(36).substr(2, 9); // Assign unique ID
                         uploadedImages.push(img);
                         updateImageList();
                         updateFileInputAndCount();
@@ -2014,6 +2050,7 @@
             const div = document.createElement('div');
             div.className = 'image-item';
             div.draggable = true;
+            div.dataset.uid = img._uid; // Store unique ID in DOM
             div.innerHTML = `
                 <img src="${img.src}" alt="Image ${index + 1}">
                 <button class="delete-button">刪除</button>
@@ -2077,8 +2114,8 @@
         }
 
         function updateImageOrder() {
-            const newOrder = Array.from(imageList.children).map(item => item.querySelector('img').src);
-            uploadedImages = uploadedImages.sort((a, b) => newOrder.indexOf(a.src) - newOrder.indexOf(b.src));
+            const newOrderIds = Array.from(imageList.children).map(item => item.dataset.uid);
+            uploadedImages.sort((a, b) => newOrderIds.indexOf(a._uid) - newOrderIds.indexOf(b._uid));
         }
 
         function deleteImage(index) {
@@ -2109,7 +2146,13 @@
                 return;
             }
             const newOrder = Array.from(imageList.children).map(item => item.querySelector('img').src);
-            uploadedImages = uploadedImages.sort((a, b) => newOrder.indexOf(a.src) - newOrder.indexOf(b.src));
+            if (uploadedImages.length === 0) {
+                alert('請先上傳圖片');
+                return;
+            }
+            // Ensure order is correct before processing
+            updateImageOrder();
+
             arrangeImages(uploadedImages);
             downloadButton.style.display = 'block';
 
@@ -2362,6 +2405,24 @@
             baseEditState = null;
         }
 
+        function applyWatermarkToArrange(img) {
+            // 浮水印縮放 (縮小30%)
+            const logoWidth = img.width * 0.7;
+            const logoHeight = img.height * 0.7;
+
+            // 位置：右下角，保留 15px 邊距
+            const logoX = editCanvas.width - logoWidth - 15;
+            const logoY = editCanvas.height - logoHeight - 15;
+
+            editCtx.save();
+            editCtx.globalAlpha = 0.5; // 50% 透明度
+            editCtx.drawImage(img, logoX, logoY, logoWidth, logoHeight);
+            editCtx.restore();
+
+            // 保存到歷史記錄
+            editHistory.push(editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height));
+        }
+
         function downloadProcessedImage() {
             // 🔥 獲取當前品質設定
             const quality = scalingQuality.value;
@@ -2483,6 +2544,7 @@
                     const img = new Image();
                     img.src = e.target.result;
                     img.onload = function () {
+                        img._uid = Date.now() + '-' + Math.random().toString(36).substr(2, 9); // Assign unique ID
                         borderlessUploadedImages.push(img);
                         borderlessUpdateImageList();
                         borderlessUpdateFileInputAndCount();
@@ -2511,6 +2573,7 @@
                 div.className = 'image-item';
                 div.draggable = true;
                 div.dataset.index = index;
+                div.dataset.uid = img._uid; // Store unique ID in DOM
 
                 const imgElement = document.createElement('img');
                 imgElement.src = img.src;
@@ -2581,8 +2644,14 @@
                 alert('請先選擇圖片');
                 return;
             }
-            const newOrder = Array.from(borderlessImageList.children).map(item => item.querySelector('img').src);
-            borderlessUploadedImages = borderlessUploadedImages.sort((a, b) => newOrder.indexOf(a.src) - newOrder.indexOf(b.src));
+            if (borderlessUploadedImages.length === 0) {
+                alert('請先選擇圖片');
+                return;
+            }
+            // Re-sort based on DOM order to ensure consistency
+            const newOrderIds = Array.from(borderlessImageList.children).map(item => item.dataset.uid);
+            borderlessUploadedImages.sort((a, b) => newOrderIds.indexOf(a._uid) - newOrderIds.indexOf(b._uid));
+
             borderlessArrangeImages(borderlessUploadedImages);
             borderlessDownloadButton.style.display = 'block';
 
@@ -2699,6 +2768,23 @@
 
             borderlessRectangleTool.addEventListener('click', () => borderlessSetTool('rectangle'));
             borderlessArrowTool.addEventListener('click', () => borderlessSetTool('arrow'));
+            borderlessWatermarkTool.addEventListener('click', () => {
+                // 檢查是否有已儲存的浮水印
+                const savedWatermark = localStorage.getItem('cropWatermarkData');
+                if (savedWatermark) {
+                    const img = new Image();
+                    img.onload = () => {
+                        applyWatermarkToBorderlessArrange(img);
+                    };
+                    img.src = savedWatermark;
+                } else {
+                    // 如果沒有，觸發文件選擇
+                    // 這裡我們需要一個變量來標記當前是哪個模式觸發的浮水印選擇
+                    // 為了簡化，我們假設使用者已經在裁切模式設定好浮水印，或者我們引導他們去設定
+                    // 或者，我們可以臨時借用 previewWatermarkInput
+                    previewWatermarkInput.click();
+                }
+            });
             borderlessMosaicTool.addEventListener('click', () => borderlessSetTool('mosaic'));
             borderlessUndoButton.addEventListener('click', borderlessUndo);
             borderlessClearButton.addEventListener('click', borderlessClearAllEdits);
@@ -2894,6 +2980,24 @@
             borderlessEditCtx.clearRect(0, 0, borderlessEditCanvas.width, borderlessEditCanvas.height);
             borderlessEditHistory = [borderlessEditCtx.getImageData(0, 0, borderlessEditCanvas.width, borderlessEditCanvas.height)];
             borderlessBaseEditState = null;
+        }
+
+        function applyWatermarkToBorderlessArrange(img) {
+            // 浮水印縮放 (縮小30%)
+            const logoWidth = img.width * 0.7;
+            const logoHeight = img.height * 0.7;
+
+            // 位置：右下角，保留 15px 邊距
+            const logoX = borderlessEditCanvas.width - logoWidth - 15;
+            const logoY = borderlessEditCanvas.height - logoHeight - 15;
+
+            borderlessEditCtx.save();
+            borderlessEditCtx.globalAlpha = 0.5; // 50% 透明度
+            borderlessEditCtx.drawImage(img, logoX, logoY, logoWidth, logoHeight);
+            borderlessEditCtx.restore();
+
+            // 保存到歷史記錄
+            borderlessEditHistory.push(borderlessEditCtx.getImageData(0, 0, borderlessEditCanvas.width, borderlessEditCanvas.height));
         }
 
         // 無邊框版本的清除所有圖片
