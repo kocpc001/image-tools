@@ -270,6 +270,7 @@
         <button id="adaSpecialMode" class="mode-button">電腦王阿達專用</button>
         <button id="screenshotArrangeMode" class="mode-button">截圖並排</button>
         <button id="borderlessScreenshotArrangeMode" class="mode-button">無邊框截圖並排</button>
+        <button id="chineseConvMode" class="mode-button">簡繁轉換</button>
     </div>
     <div id="dropZone">
         <p>拖曳圖片到這裡或點擊選擇檔案</p>
@@ -558,6 +559,7 @@
         const screenshotArrangeModeBtn = document.getElementById('screenshotArrangeMode');
         const borderlessScreenshotArrangeModeBtn = document.getElementById('borderlessScreenshotArrangeMode');
         const cropImageModeBtn = document.getElementById('cropImageMode');
+        const chineseConvModeBtn = document.getElementById('chineseConvMode');
         const logoInput = document.getElementById('logoInput');
         const logoStatus = document.getElementById('logoStatus');
         const logoPreview = document.getElementById('logoPreview');
@@ -654,6 +656,9 @@
         adaSpecialModeBtn.addEventListener('click', () => setMode('adaSpecial'));
         screenshotArrangeModeBtn.addEventListener('click', () => setMode('screenshotArrange'));
         cropImageModeBtn.addEventListener('click', () => setMode('cropImage')); // 新增：裁切模式按鈕事件
+        chineseConvModeBtn.addEventListener('click', () => {
+            window.open('https://chineseconv-rjungp7f.manus.space/', '_blank');
+        });
         selectLogoBtn.addEventListener('click', () => logoInput.click());
         selectAdaLogoBtn.addEventListener('click', () => logoInput.click());
 
