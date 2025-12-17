@@ -465,6 +465,591 @@
         .btn-outline:hover {
             background-color: #f7fafc;
         }
+
+        .mr-header {
+            background-color: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .mr-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mr-icon-box {
+            background-color: #2563eb;
+            padding: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mr-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #f1f5f9;
+            margin: 0;
+        }
+
+        .mr-mode-switch {
+            display: flex;
+            background-color: #334155;
+            padding: 4px;
+            border-radius: 8px;
+            gap: 4px;
+        }
+
+        .mr-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            background: transparent;
+            color: #94a3b8;
+        }
+
+        .mr-btn:hover {
+            color: white;
+        }
+
+        .mr-btn-active {
+            background-color: white;
+            color: #0f172a;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Main Layout */
+        .mr-main {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            padding: 16px;
+            background-color: #0f172a;
+            color: #f1f5f9;
+            min-height: 600px;
+        }
+
+        @media (min-width: 1024px) {
+            .mr-main {
+                flex-direction: row;
+            }
+        }
+
+        .mr-canvas-container {
+            flex: 1;
+            background-color: #020617;
+            border-radius: 12px;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+            border: 1px solid #1e293b;
+            position: relative;
+            overflow: hidden;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mr-upload-prompt {
+            text-align: center;
+            padding: 40px;
+            max-width: 400px;
+        }
+
+        .mr-upload-icon-circle {
+            width: 80px;
+            height: 80px;
+            background-color: #1e293b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            border: 2px dashed #475569;
+        }
+
+        .mr-upload-icon {
+            width: 40px;
+            height: 40px;
+            color: #64748b;
+        }
+
+        .mr-upload-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #f1f5f9;
+        }
+
+        .mr-upload-desc {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .mr-upload-btn {
+            background-color: #2563eb;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.2);
+        }
+
+        .mr-upload-btn:hover {
+            background-color: #3b82f6;
+        }
+
+        /* Canvas Wrapper */
+        .mr-canvas-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #mrImageCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        #mrMaskCanvas {
+            position: absolute;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+            opacity: 0.6;
+            touch-action: none;
+        }
+
+        .mr-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            padding: 8px;
+            background-color: rgba(15, 23, 42, 0.8);
+            color: white;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .mr-close-btn:hover {
+            background-color: rgba(239, 68, 68, 0.8);
+            transform: scale(1.1);
+        }
+
+        /* Sidebar */
+        .mr-sidebar {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @media (min-width: 1024px) {
+            .mr-sidebar {
+                width: 320px;
+            }
+        }
+
+        .mr-panel {
+            background-color: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .mr-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .text-green-400 {
+            color: #4ade80;
+        }
+
+        .text-yellow-400 {
+            color: #facc15;
+        }
+
+        .text-blue-400 {
+            color: #60a5fa;
+        }
+
+        .text-purple-400 {
+            color: #c084fc;
+        }
+
+        .text-white {
+            color: white;
+        }
+
+        .mr-info-box {
+            background-color: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+        }
+
+        .mr-control-group {
+            margin-bottom: 24px;
+        }
+
+        .mr-toggle-group {
+            display: flex;
+            background-color: #0f172a;
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .mr-toggle-btn {
+            flex: 1;
+            padding: 8px;
+            font-size: 12px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            background: transparent;
+            color: #64748b;
+            transition: color 0.2s;
+        }
+
+        .mr-toggle-btn:hover {
+            color: #cbd5e1;
+        }
+
+        .mr-toggle-btn.active {
+            background-color: #334155;
+            color: white;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .mr-label-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+
+        .mr-val {
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        .mr-slider {
+            width: 100%;
+            height: 8px;
+            background-color: #0f172a;
+            border-radius: 8px;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .mr-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background-color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .mr-slider.accent-green::-webkit-slider-thumb {
+            background-color: #4ade80;
+        }
+
+        .mr-slider.accent-blue::-webkit-slider-thumb {
+            background-color: #60a5fa;
+        }
+
+        .mr-slider.accent-purple::-webkit-slider-thumb {
+            background-color: #c084fc;
+        }
+
+        /* Inpainting */
+        .mr-desc-text {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .mr-action-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.1s;
+        }
+
+        .mr-action-btn:active {
+            transform: scale(0.98);
+        }
+
+        .bg-yellow {
+            background-color: #ca8a04;
+        }
+
+        .bg-yellow:hover {
+            background-color: #eab308;
+        }
+
+        /* Tools */
+        .mr-section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 16px;
+        }
+
+        .mr-tool-select {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .mr-tool-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background-color: #334155;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mr-tool-btn:hover {
+            background-color: #475569;
+        }
+
+        .mr-tool-btn.active {
+            background-color: #2563eb;
+            border-color: #1d4ed8;
+            color: white;
+        }
+
+        .mr-small-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px;
+            background-color: #334155;
+            border-radius: 8px;
+            color: #cbd5e1;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .mr-small-btn:hover {
+            background-color: #475569;
+        }
+
+        .mr-action-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        /* Result */
+        .mr-result-box {
+            background-color: #0f172a;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid #1e293b;
+            margin-top: 8px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .mr-result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 16px;
+        }
+
+        .mr-result-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .mr-download-btn {
+            padding: 10px 24px;
+            background-color: #2563eb;
+            color: white;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.2s;
+        }
+
+        .mr-download-btn:hover {
+            background-color: #3b82f6;
+        }
+
+        .mr-coffee-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background-color: #FFDD00;
+            color: black;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            text-decoration: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.2s;
+            font-family: cursive;
+        }
+
+        .mr-coffee-btn:hover {
+            background-color: #ffea55;
+        }
+
+        .mr-result-img-wrapper {
+            display: flex;
+            justify-content: center;
+            background-color: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid rgba(30, 41, 59, 0.5);
+        }
+
+        .mr-result-img-wrapper img {
+            max-height: 600px;
+            width: auto;
+            border-radius: 4px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        .mr-loading-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mr-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #3b82f6;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .mr-loading-text {
+            color: white;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .mr-loading-subtext {
+            font-size: 12px;
+            color: #94a3b8;
+        }
     </style>
 
 </head>
@@ -498,6 +1083,7 @@
         <button id="screenshotArrangeMode" class="mode-button">截圖並排</button>
         <button id="borderlessScreenshotArrangeMode" class="mode-button">無邊框截圖並排</button>
         <button id="chineseConvMode" class="mode-button">簡繁轉換</button>
+        <button id="magicRemoverMode" class="mode-button">去浮水印</button>
     </div>
     <div id="dropZone">
         <p>拖曳圖片到這裡或點擊選擇檔案</p>
@@ -663,8 +1249,197 @@
             </div>
         </div>
     </div>
+    <!-- 去浮水印 (Magic Remover) 功能區塊 -->
+    <div id="magicRemoverArea" style="display: none;">
+        <!-- Header -->
+        <div class="mr-header">
+            <div class="mr-title-group">
+                <div class="mr-icon-box">
+                    <i data-lucide="droplet" class="text-white"></i>
+                </div>
+                <h1 class="mr-title">
+                    電腦王阿達 Nano Banana 去浮水印工具
+                </h1>
+            </div>
 
-    <!-- 自定義詞庫視窗 -->
+            <div class="mr-mode-switch">
+                <button id="mrModeReconstruct" class="mr-btn mr-btn-active">
+                    <i data-lucide="palette" size="14"></i>
+                    半透明去除
+                </button>
+                <button id="mrModeInpainting" class="mr-btn">
+                    <i data-lucide="zap" size="14"></i>
+                    物體消除
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="mr-main">
+            <!-- Canvas Area -->
+            <div id="mrCanvasContainer" class="mr-canvas-container">
+                <div id="mrUploadPrompt" class="mr-upload-prompt">
+                    <div class="mr-upload-icon-circle">
+                        <i data-lucide="image" class="mr-upload-icon"></i>
+                    </div>
+                    <h3 class="mr-upload-title">上傳您的圖片</h3>
+                    <p class="mr-upload-desc">
+                        選擇模式：針對 LOGO 浮水印請用「半透明去除」；針對路人或實心物體請用「物體消除」。
+                    </p>
+                    <label class="mr-upload-btn">
+                        <i data-lucide="upload" size="18"></i>
+                        <span>選擇檔案</span>
+                        <input type="file" id="mrFileInput" accept="image/*" style="display:none">
+                    </label>
+                </div>
+
+                <div id="mrCanvasWrapper" class="mr-canvas-wrapper" style="display:none;">
+                    <canvas id="mrImageCanvas"></canvas>
+                    <canvas id="mrMaskCanvas"></canvas>
+                    <button id="mrCloseBtn" class="mr-close-btn" title="移除圖片">
+                        <i data-lucide="x" size="20"></i>
+                    </button>
+                </div>
+
+                <div id="mrLoadingOverlay" class="mr-loading-overlay" style="display:none;">
+                    <div class="mr-spinner"></div>
+                    <div class="mr-loading-text">智能運算中... <span id="mrProgress">0</span>%</div>
+                    <div class="mr-loading-subtext">正在尋找最佳紋理填補區域</div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="mr-sidebar">
+
+                <!-- Reconstruct Controls -->
+                <div id="mrControlsReconstruct" class="mr-panel">
+                    <div class="mr-panel-header text-green-400">
+                        <i data-lucide="palette" size="18"></i>
+                        <h3>半透明去除設定</h3>
+                    </div>
+
+                    <div class="mr-info-box">
+                        <div style="display:flex; gap:8px;">
+                            <i data-lucide="info" size="16" class="text-blue-400"></i>
+                            <p>
+                                <strong>推薦用於 LOGO</strong>
+                                魔法棒與筆刷皆已啟用自動擴展，能有效消除邊緣白邊雜點。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mr-control-group">
+                        <div class="mr-toggle-group">
+                            <button id="mrColorWhite" class="mr-toggle-btn active">白色浮水印</button>
+                            <button id="mrColorBlack" class="mr-toggle-btn">黑色浮水印</button>
+                        </div>
+                    </div>
+
+                    <div class="mr-control-group">
+                        <div class="mr-label-row">
+                            <span>1. 去除強度</span>
+                            <span id="mrIntensityVal" class="mr-val text-green-400">50%</span>
+                        </div>
+                        <input type="range" id="mrIntensity" min="0" max="80" value="50" class="mr-slider accent-green">
+                    </div>
+
+                    <div class="mr-control-group">
+                        <div class="mr-label-row">
+                            <span style="display:flex; align-items:center; gap:4px;"><i data-lucide="sliders"
+                                    size="14"></i> 2. 過濾背景</span>
+                            <span id="mrThresholdVal" class="mr-val text-blue-400">50</span>
+                        </div>
+                        <input type="range" id="mrThreshold" min="0" max="100" value="50" class="mr-slider accent-blue">
+                    </div>
+                </div>
+
+                <!-- Inpainting Controls -->
+                <div id="mrControlsInpainting" class="mr-panel" style="display:none;">
+                    <div class="mr-panel-header text-yellow-400">
+                        <i data-lucide="sparkles" size="18"></i>
+                        <h3>物體消除設定</h3>
+                    </div>
+                    <p class="mr-desc-text">
+                        使用類似 LaMa Cleaner 的 <strong>PatchMatch 演算法</strong>，智能填補不透明的物體。<br>
+                        <span style="color:#64748b; font-size:11px;">(注意：運算較耗時)</span>
+                    </p>
+                    <button id="mrStartInpaintingBtn" class="mr-action-btn bg-yellow">
+                        <i data-lucide="play" size="18"></i>
+                        開始智能運算
+                    </button>
+                </div>
+
+                <!-- Common Tools -->
+                <div class="mr-panel" style="flex:1;">
+                    <h3 class="mr-section-title">繪圖工具</h3>
+
+                    <div class="mr-tool-select">
+                        <button id="mrToolWand" class="mr-tool-btn active">
+                            <i data-lucide="wand-2" size="20"></i>
+                            <span>魔法棒</span>
+                        </button>
+                        <button id="mrToolBrush" class="mr-tool-btn">
+                            <i data-lucide="brush" size="20"></i>
+                            <span>筆刷</span>
+                        </button>
+                    </div>
+
+                    <!-- Wand Settings -->
+                    <div id="mrSettingsWand" class="mr-sub-settings">
+                        <div class="mr-label-row">
+                            <span style="display:flex; align-items:center; gap:4px;"><i data-lucide="zap" size="12"
+                                    class="text-purple-400"></i> 容許度</span>
+                            <span id="mrToleranceVal" class="mr-val text-purple-400">30</span>
+                        </div>
+                        <input type="range" id="mrTolerance" min="1" max="100" value="30"
+                            class="mr-slider accent-purple">
+                        <p class="mr-hint">數值越高，魔法棒選取的顏色範圍越廣。</p>
+                    </div>
+
+                    <!-- Brush Settings -->
+                    <div id="mrSettingsBrush" class="mr-sub-settings" style="display:none;">
+                        <div class="mr-label-row">
+                            <span>筆刷大小</span>
+                            <span id="mrBrushSizeVal" class="mr-val">30px</span>
+                        </div>
+                        <input type="range" id="mrBrushSize" min="5" max="100" value="30" class="mr-slider accent-blue">
+                    </div>
+
+                    <div class="mr-action-row">
+                        <button id="mrClearBtn" class="mr-small-btn">
+                            <i data-lucide="trash-2" size="14"></i> 全清空
+                        </button>
+                        <button id="mrUndoBtn" class="mr-small-btn">
+                            <i data-lucide="rotate-ccw" size="14"></i> 上一步
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Preview -->
+        <div id="mrResultPreview" class="mr-result-box" style="display:none;">
+            <div class="mr-result-header">
+                <div class="mr-result-title">
+                    <i data-lucide="check-circle-2" class="text-green-500"></i>
+                    <h3>處理結果預覽</h3>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <a href="https://www.buymeacoffee.com/kocpc" target="_blank" class="mr-coffee-btn">
+                        <i data-lucide="coffee"></i>
+                        <span>Buy me a coffee</span>
+                    </a>
+                    <button id="mrDownloadBtn" class="mr-download-btn">
+                        <i data-lucide="download" size="18"></i>
+                        下載 JPG 圖片
+                    </button>
+                </div>
+            </div>
+            <div class="mr-result-img-wrapper">
+                <img id="mrResultImage" alt="Result">
+            </div>
+        </div>
+    </div>
     <div id="dictDialog">
         <div class="dict-content">
             <div class="dict-header">
@@ -693,6 +1468,7 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
     <script
         src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.0/dist/browser-image-compression.js"></script>
@@ -877,8 +1653,10 @@
         const adaSpecialModeBtn = document.getElementById('adaSpecialMode');
         const screenshotArrangeModeBtn = document.getElementById('screenshotArrangeMode');
         const borderlessScreenshotArrangeModeBtn = document.getElementById('borderlessScreenshotArrangeMode');
+
         const cropImageModeBtn = document.getElementById('cropImageMode');
         const chineseConvModeBtn = document.getElementById('chineseConvMode');
+        const magicRemoverModeBtn = document.getElementById('magicRemoverMode');
         const logoInput = document.getElementById('logoInput');
         const logoStatus = document.getElementById('logoStatus');
         const logoPreview = document.getElementById('logoPreview');
@@ -888,6 +1666,8 @@
         const screenshotArrangeDiv = document.getElementById('screenshotArrange');
         const borderlessScreenshotArrangeDiv = document.getElementById('borderlessScreenshotArrange');
         const cropImageArea = document.getElementById('cropImageArea');
+        const chineseConvArea = document.getElementById('chineseConvArea');
+        const magicRemoverArea = document.getElementById('magicRemoverArea');
         // const cropFileInput = document.getElementById('cropFileInput'); // 移除，因為已統一使用 fileInput
         const cropCanvas = document.getElementById('cropCanvas');
         const cropCtx = cropCanvas.getContext('2d');
@@ -976,6 +1756,7 @@
         screenshotArrangeModeBtn.addEventListener('click', () => setMode('screenshotArrange'));
         cropImageModeBtn.addEventListener('click', () => setMode('cropImage')); // 新增：裁切模式按鈕事件
         chineseConvModeBtn.addEventListener('click', () => setMode('chineseConv'));
+        magicRemoverModeBtn.addEventListener('click', () => setMode('magicRemover'));
         selectLogoBtn.addEventListener('click', () => logoInput.click());
         selectAdaLogoBtn.addEventListener('click', () => logoInput.click());
 
@@ -1125,7 +1906,7 @@
             }
 
             currentMode = mode;
-            [resize320ModeBtn, resize1080ModeBtn, addWatermarkModeBtn, adaSpecialModeBtn, screenshotArrangeModeBtn, cropImageModeBtn, borderlessScreenshotArrangeModeBtn, chineseConvModeBtn].forEach(btn => btn.classList.remove('active'));
+            [resize320ModeBtn, resize1080ModeBtn, addWatermarkModeBtn, adaSpecialModeBtn, screenshotArrangeModeBtn, cropImageModeBtn, borderlessScreenshotArrangeModeBtn, chineseConvModeBtn, magicRemoverModeBtn].forEach(btn => btn.classList.remove('active'));
 
             selectLogoBtn.style.display = 'none';
             selectAdaLogoBtn.style.display = 'none';
@@ -1135,6 +1916,7 @@
             borderlessScreenshotArrangeDiv.style.display = 'none';
             cropImageArea.style.display = 'none';
             chineseConvArea.style.display = 'none';
+            magicRemoverArea.style.display = 'none';
 
             // 清除之前的處理檔案資訊
             status.innerHTML = '';
@@ -1196,6 +1978,13 @@
                 chineseConvModeBtn.classList.add('active');
                 pageTitle.textContent = '繁簡轉換';
                 chineseConvArea.style.display = 'block';
+                dropZone.style.display = 'none';
+                fileInput.style.display = 'none';
+                previewArea.style.display = 'none';
+            } else if (mode === 'magicRemover') {
+                magicRemoverModeBtn.classList.add('active');
+                pageTitle.textContent = '去浮水印';
+                magicRemoverArea.style.display = 'block';
                 dropZone.style.display = 'none';
                 fileInput.style.display = 'none';
                 previewArea.style.display = 'none';
@@ -3398,7 +4187,7 @@
             link.click();
         }
         // ============ 繁簡轉換功能 ============
-        const chineseConvArea = document.getElementById('chineseConvArea');
+
         const convInput = document.getElementById('convInput');
         const convOutputTrad = document.getElementById('convOutputTrad');
         const convOutputSimp = document.getElementById('convOutputSimp');
@@ -3588,7 +4377,758 @@
             }
         });
 
+
+        /* =========================================
+           Magic Remover (Watermark Remover) Logic
+           ========================================= */
+
+        const mrState = {
+            image: null, // DataURL
+            isProcessing: false,
+            resultImage: null,
+            tool: 'wand',
+            tolerance: 30,
+            mode: 'reconstruct', // 'reconstruct' or 'inpainting'
+            watermarkColor: 'white',
+            intensity: 50,
+            threshold: 50,
+            brushSize: 30,
+            isDrawing: false,
+            maskPaths: [],
+            currentPath: null,
+            originalImageData: null,
+            canvasDimensions: { width: 0, height: 0 }
+        };
+
+        // UI Elements
+        const mrArea = document.getElementById('magicRemoverArea');
+        const mrFileInput = document.getElementById('mrFileInput');
+        const mrCanvasWrapper = document.getElementById('mrCanvasWrapper');
+        const mrUploadPrompt = document.getElementById('mrUploadPrompt');
+        const mrImageCanvas = document.getElementById('mrImageCanvas');
+        const mrMaskCanvas = document.getElementById('mrMaskCanvas');
+        const mrResultPreview = document.getElementById('mrResultPreview');
+        const mrResultImage = document.getElementById('mrResultImage');
+        const mrLoadingOverlay = document.getElementById('mrLoadingOverlay');
+        const mrProgress = document.getElementById('mrProgress');
+
+        // Controls
+        const mrModeReconstructBtn = document.getElementById('mrModeReconstruct');
+        const mrModeInpaintingBtn = document.getElementById('mrModeInpainting');
+        const mrControlsReconstruct = document.getElementById('mrControlsReconstruct');
+        const mrControlsInpainting = document.getElementById('mrControlsInpainting');
+
+        // Reconstruct Settings
+        const mrColorWhiteBtn = document.getElementById('mrColorWhite');
+        const mrColorBlackBtn = document.getElementById('mrColorBlack');
+        const mrIntensityInput = document.getElementById('mrIntensity');
+        const mrIntensityVal = document.getElementById('mrIntensityVal');
+        const mrThresholdInput = document.getElementById('mrThreshold');
+        const mrThresholdVal = document.getElementById('mrThresholdVal');
+
+        // Tools
+        const mrToolWandBtn = document.getElementById('mrToolWand');
+        const mrToolBrushBtn = document.getElementById('mrToolBrush');
+        const mrSettingsWand = document.getElementById('mrSettingsWand');
+        const mrSettingsBrush = document.getElementById('mrSettingsBrush');
+        const mrToleranceInput = document.getElementById('mrTolerance');
+        const mrToleranceVal = document.getElementById('mrToleranceVal');
+        const mrBrushSizeInput = document.getElementById('mrBrushSize');
+        const mrBrushSizeVal = document.getElementById('mrBrushSizeVal');
+
+        // Actions
+        const mrClearBtn = document.getElementById('mrClearBtn');
+        const mrUndoBtn = document.getElementById('mrUndoBtn');
+        const mrStartInpaintingBtn = document.getElementById('mrStartInpaintingBtn');
+        const mrDownloadBtn = document.getElementById('mrDownloadBtn');
+        const mrCloseBtn = document.getElementById('mrCloseBtn');
+
+
+        // Event Listeners
+        function initMagicRemoverEvents() {
+            mrFileInput.addEventListener('change', handleMrImageUpload);
+
+            mrModeReconstructBtn.addEventListener('click', () => setMrMode('reconstruct'));
+            mrModeInpaintingBtn.addEventListener('click', () => setMrMode('inpainting'));
+
+            mrColorWhiteBtn.addEventListener('click', () => setMrWatermarkColor('white'));
+            mrColorBlackBtn.addEventListener('click', () => setMrWatermarkColor('black'));
+
+            mrIntensityInput.addEventListener('input', (e) => {
+                mrState.intensity = parseInt(e.target.value);
+                mrIntensityVal.textContent = mrState.intensity + '%';
+                mrUpdateEffect();
+            });
+
+            mrThresholdInput.addEventListener('input', (e) => {
+                mrState.threshold = parseInt(e.target.value);
+                mrThresholdVal.textContent = mrState.threshold;
+                mrUpdateEffect();
+            });
+
+            mrToolWandBtn.addEventListener('click', () => setMrTool('wand'));
+            mrToolBrushBtn.addEventListener('click', () => setMrTool('brush'));
+
+            mrToleranceInput.addEventListener('input', (e) => {
+                mrState.tolerance = parseInt(e.target.value);
+                mrToleranceVal.textContent = mrState.tolerance;
+            });
+
+            mrBrushSizeInput.addEventListener('input', (e) => {
+                mrState.brushSize = parseInt(e.target.value);
+                mrBrushSizeVal.textContent = mrState.brushSize + 'px';
+            });
+
+            mrClearBtn.addEventListener('click', mrClearMask);
+            mrUndoBtn.addEventListener('click', mrUndoMask);
+            mrStartInpaintingBtn.addEventListener('click', mrApplyInpainting);
+            mrDownloadBtn.addEventListener('click', mrDownloadResult);
+            mrCloseBtn.addEventListener('click', mrRemoveImage);
+
+            // Canvas Drawing Events
+            mrMaskCanvas.addEventListener('mousedown', mrStartDrawing);
+            mrMaskCanvas.addEventListener('mousemove', mrDraw);
+            mrMaskCanvas.addEventListener('mouseup', mrStopDrawing);
+            mrMaskCanvas.addEventListener('mouseleave', mrStopDrawing);
+
+            // Touch support
+            mrMaskCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); mrStartDrawing(e); });
+            mrMaskCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); mrDraw(e); });
+            mrMaskCanvas.addEventListener('touchend', (e) => { e.preventDefault(); mrStopDrawing(e); });
+
+            // Ensure icons are rendered
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function setMrMode(mode) {
+            mrState.mode = mode;
+            if (mode === 'reconstruct') {
+                mrModeReconstructBtn.classList.add('mr-btn-active');
+                mrModeInpaintingBtn.classList.remove('mr-btn-active');
+                mrControlsReconstruct.style.display = 'block';
+                mrControlsInpainting.style.display = 'none';
+            } else {
+                mrModeReconstructBtn.classList.remove('mr-btn-active');
+                mrModeInpaintingBtn.classList.add('mr-btn-active');
+                mrControlsReconstruct.style.display = 'none';
+                mrControlsInpainting.style.display = 'block';
+            }
+            mrRedrawMask();
+        }
+
+        function setMrWatermarkColor(color) {
+            mrState.watermarkColor = color;
+            if (color === 'white') {
+                mrColorWhiteBtn.classList.add('active');
+                mrColorBlackBtn.classList.remove('active');
+            } else {
+                mrColorWhiteBtn.classList.remove('active');
+                mrColorBlackBtn.classList.add('active');
+            }
+            mrUpdateEffect();
+        }
+
+        function setMrTool(tool) {
+            mrState.tool = tool;
+            if (tool === 'wand') {
+                mrToolWandBtn.classList.add('active');
+                mrToolBrushBtn.classList.remove('active');
+                mrSettingsWand.style.display = 'block';
+                mrSettingsBrush.style.display = 'none';
+                mrMaskCanvas.style.cursor = 'pointer';
+            } else {
+                mrToolWandBtn.classList.remove('active');
+                mrToolBrushBtn.classList.add('active');
+                mrSettingsWand.style.display = 'none';
+                mrSettingsBrush.style.display = 'block';
+                mrMaskCanvas.style.cursor = 'crosshair';
+            }
+        }
+
+        function handleMrImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    const MAX_SIDE = 2000;
+                    let w = img.width;
+                    let h = img.height;
+
+                    if (w > MAX_SIDE || h > MAX_SIDE) {
+                        const ratio = Math.min(MAX_SIDE / w, MAX_SIDE / h);
+                        w = Math.round(w * ratio);
+                        h = Math.round(h * ratio);
+                    }
+
+                    mrState.canvasDimensions = { width: w, height: h };
+                    mrState.image = event.target.result;
+                    mrState.maskPaths = [];
+                    mrState.currentPath = null;
+                    mrState.resultImage = null;
+
+                    // Setup Canvas
+                    mrImageCanvas.width = w;
+                    mrImageCanvas.height = h;
+                    mrMaskCanvas.width = w;
+                    mrMaskCanvas.height = h;
+
+                    const ctx = mrImageCanvas.getContext('2d', { willReadFrequently: true });
+                    ctx.drawImage(img, 0, 0, w, h);
+                    mrState.originalImageData = ctx.getImageData(0, 0, w, h);
+
+                    // Show Canvas
+                    mrUploadPrompt.style.display = 'none';
+                    mrCanvasWrapper.style.display = 'flex'; // or block/flex
+                    mrResultPreview.style.display = 'none';
+
+                    mrRedrawMask();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+            e.target.value = ''; // Reset input
+        }
+
+        function mrRemoveImage() {
+            if (mrState.isProcessing) return;
+            mrState.image = null;
+            mrState.maskPaths = [];
+            mrState.originalImageData = null;
+            mrUploadPrompt.style.display = 'block';
+            mrCanvasWrapper.style.display = 'none';
+            mrResultPreview.style.display = 'none';
+        }
+
+        function getMrCoordinates(e) {
+            const rect = mrMaskCanvas.getBoundingClientRect();
+            const scaleX = mrMaskCanvas.width / rect.width;
+            const scaleY = mrMaskCanvas.height / rect.height;
+
+            let clientX, clientY;
+            if (e.touches && e.touches[0]) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            return {
+                offsetX: (clientX - rect.left) * scaleX,
+                offsetY: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function mrStartDrawing(e) {
+            if (!mrState.image || mrState.isProcessing) return;
+            const { offsetX, offsetY } = getMrCoordinates(e);
+
+            if (mrState.tool === 'wand') {
+                const newWandAction = {
+                    type: 'wand',
+                    x: offsetX,
+                    y: offsetY,
+                    tolerance: mrState.tolerance
+                };
+                mrState.maskPaths.push(newWandAction);
+                mrRedrawMask();
+            } else {
+                mrState.isDrawing = true;
+                // Calculate scale factor relative to display size vs authentic size if needed, 
+                // but here offset is already scaled.
+                // We just use raw brush size or scaled? 
+                // React code used getScaleFactor() helper.
+                // Let's implement simple constant scale or relative to canvas width?
+                // React code: const scaleFactor = maskCanvas.width / rect.width;
+                const rect = mrMaskCanvas.getBoundingClientRect();
+                const scaleFactor = mrMaskCanvas.width / rect.width;
+
+                mrState.currentPath = {
+                    type: 'brush',
+                    points: [{ x: offsetX, y: offsetY }],
+                    size: mrState.brushSize * scaleFactor
+                };
+                mrRedrawMask();
+            }
+        }
+
+        function mrDraw(e) {
+            if (!mrState.isDrawing || !mrState.image || mrState.isProcessing || mrState.tool !== 'brush') return;
+            const { offsetX, offsetY } = getMrCoordinates(e);
+
+            if (mrState.currentPath) {
+                mrState.currentPath.points.push({ x: offsetX, y: offsetY });
+                mrRedrawMask();
+            }
+        }
+
+        function mrStopDrawing() {
+            if (!mrState.isDrawing) return;
+            mrState.isDrawing = false;
+            if (mrState.currentPath) {
+                mrState.maskPaths.push(mrState.currentPath);
+                mrState.currentPath = null;
+                mrRedrawMask();
+            }
+        }
+
+        function mrUndoMask() {
+            if (mrState.maskPaths.length > 0) {
+                mrState.maskPaths.pop();
+                mrRedrawMask();
+            }
+        }
+
+        function mrClearMask() {
+            mrState.maskPaths = [];
+            mrState.currentPath = null;
+            mrRedrawMask();
+            // Reset result to original
+            if (mrState.originalImageData) {
+                const ctx = mrImageCanvas.getContext('2d');
+                ctx.putImageData(mrState.originalImageData, 0, 0);
+                mrUpdateResultImage();
+            }
+        }
+
+        function mrRedrawMask() {
+            if (!mrMaskCanvas || !mrState.originalImageData) return;
+            const ctx = mrMaskCanvas.getContext('2d');
+            const width = mrMaskCanvas.width;
+            const height = mrMaskCanvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.shadowBlur = 4;
+            const strokeStyle = mrState.mode === 'reconstruct' ? 'rgba(100, 255, 100, 1)' : 'rgba(255, 50, 50, 1)';
+            ctx.shadowColor = strokeStyle;
+            ctx.strokeStyle = strokeStyle;
+
+            const pathsToDraw = [...mrState.maskPaths];
+            if (mrState.currentPath) pathsToDraw.push(mrState.currentPath);
+
+            pathsToDraw.forEach(path => {
+                if (path.type === 'brush') {
+                    if (path.points.length < 1) return;
+                    ctx.lineWidth = path.size;
+                    ctx.beginPath();
+                    ctx.moveTo(path.points[0].x, path.points[0].y);
+                    for (let i = 1; i < path.points.length; i++) {
+                        ctx.lineTo(path.points[i].x, path.points[i].y);
+                    }
+                    ctx.stroke();
+                }
+            });
+            ctx.shadowBlur = 0;
+
+            const maskImageData = ctx.getImageData(0, 0, width, height);
+            const maskData = maskImageData.data;
+
+            // Make non-transparent pixels fully opaque for mask logic
+            for (let i = 0; i < width * height; i++) {
+                if (maskData[i * 4 + 3] > 0) {
+                    maskData[i * 4 + 3] = 255;
+                }
+            }
+
+            const maskR = mrState.mode === 'reconstruct' ? 100 : 255;
+            const maskG = mrState.mode === 'reconstruct' ? 255 : 50;
+            const maskB = mrState.mode === 'reconstruct' ? 100 : 50;
+            const maskA = 255;
+
+            // Handle Magic Wand
+            const wandActions = mrState.maskPaths.filter(p => p.type === 'wand');
+            if (wandActions.length > 0) {
+                const originalData = mrState.originalImageData.data;
+                wandActions.forEach(action => {
+                    mrFloodFill(
+                        originalData,
+                        maskData,
+                        Math.round(action.x),
+                        Math.round(action.y),
+                        width,
+                        height,
+                        action.tolerance,
+                        maskR, maskG, maskB, maskA
+                    );
+                });
+            }
+
+            // Grow Mask - Fix 1: radius 3
+            if (mrState.maskPaths.length > 0 || mrState.currentPath) {
+                mrGrowMask(maskData, width, height, 3, maskR, maskG, maskB, maskA);
+            }
+
+            ctx.putImageData(maskImageData, 0, 0);
+
+            // Auto-update effect for reconstruct mode
+            if (mrState.mode === 'reconstruct' && !mrState.isDrawing) {
+                mrApplyColorReconstruction();
+            }
+        }
+
+        function mrUpdateEffect() {
+            if (mrState.mode === 'reconstruct') {
+                mrApplyColorReconstruction();
+            }
+        }
+
+        function mrUpdateResultImage() {
+            mrState.resultImage = mrImageCanvas.toDataURL('image/jpeg', 0.9);
+            mrResultImage.src = mrState.resultImage;
+            mrResultPreview.style.display = 'block';
+        }
+
+        let mrUpdateTimeout;
+        function mrScheduleUpdate() {
+            if (mrUpdateTimeout) clearTimeout(mrUpdateTimeout);
+            mrUpdateTimeout = setTimeout(mrUpdateResultImage, 500);
+        }
+
+        function mrFloodFill(srcData, targetData, startX, startY, width, height, tolerance, r, g, b, a) {
+            if (startX < 0 || startX >= width || startY < 0 || startY >= height) return;
+
+            const stack = [[startX, startY]];
+            const visited = new Uint8Array(width * height);
+            const startIdx = (startY * width + startX) * 4;
+
+            const seedR = srcData[startIdx];
+            const seedG = srcData[startIdx + 1];
+            const seedB = srcData[startIdx + 2];
+
+            const limit = tolerance * 4.4;
+
+            while (stack.length) {
+                const [x, y] = stack.pop();
+                const visitIdx = y * width + x;
+
+                if (visited[visitIdx]) continue;
+                visited[visitIdx] = 1;
+
+                const idx = visitIdx * 4;
+                const currR = srcData[idx];
+                const currG = srcData[idx + 1];
+                const currB = srcData[idx + 2];
+
+                const dist = Math.sqrt(
+                    (currR - seedR) ** 2 +
+                    (currG - seedG) ** 2 +
+                    (currB - seedB) ** 2
+                );
+
+                if (dist <= limit) {
+                    if (targetData[idx + 3] < 255) {
+                        targetData[idx] = r;
+                        targetData[idx + 1] = g;
+                        targetData[idx + 2] = b;
+                        targetData[idx + 3] = a;
+                    }
+
+                    if (x > 0) stack.push([x - 1, y]);
+                    if (x < width - 1) stack.push([x + 1, y]);
+                    if (y > 0) stack.push([x, y - 1]);
+                    if (y < height - 1) stack.push([x, y + 1]);
+                }
+            }
+        }
+
+        function mrGrowMask(data, width, height, radius, r, g, b, a) {
+            let alphaBuffer = new Uint8Array(width * height);
+            for (let i = 0; i < width * height; i++) {
+                alphaBuffer[i] = data[i * 4 + 3];
+            }
+
+            for (let step = 0; step < radius; step++) {
+                let newAlphaBuffer = new Uint8Array(alphaBuffer);
+                let changed = false;
+
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const i = y * width + x;
+
+                        if (alphaBuffer[i] === 0) {
+                            let hasMaskNeighbor = false;
+
+                            // Check 8 neighbors
+                            if (x > 0 && alphaBuffer[i - 1] > 0) hasMaskNeighbor = true;
+                            else if (x < width - 1 && alphaBuffer[i + 1] > 0) hasMaskNeighbor = true;
+                            else if (y > 0 && alphaBuffer[i - width] > 0) hasMaskNeighbor = true;
+                            else if (y < height - 1 && alphaBuffer[i + width] > 0) hasMaskNeighbor = true;
+                            else if (x > 0 && y > 0 && alphaBuffer[i - width - 1] > 0) hasMaskNeighbor = true;
+                            else if (x < width - 1 && y > 0 && alphaBuffer[i - width + 1] > 0) hasMaskNeighbor = true;
+                            else if (x > 0 && y < height - 1 && alphaBuffer[i + width - 1] > 0) hasMaskNeighbor = true;
+                            else if (x < width - 1 && y < height - 1 && alphaBuffer[i + width + 1] > 0) hasMaskNeighbor = true;
+
+                            if (hasMaskNeighbor) {
+                                newAlphaBuffer[i] = 255;
+                                changed = true;
+                            }
+                        }
+                    }
+                }
+                alphaBuffer = newAlphaBuffer;
+                if (!changed) break;
+            }
+
+            for (let i = 0; i < width * height; i++) {
+                // Apply color to new mask pixels
+                if (alphaBuffer[i] > 0 && data[i * 4 + 3] === 0) {
+                    data[i * 4] = r;
+                    data[i * 4 + 1] = g;
+                    data[i * 4 + 2] = b;
+                    data[i * 4 + 3] = a;
+                }
+            }
+        }
+
+        function mrApplyColorReconstruction() {
+            if (!mrState.originalImageData) return;
+            // Debounce if currently drawing?
+            if (mrState.isDrawing) return;
+
+            const canvas = mrImageCanvas;
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
+
+            const maskCtx = mrMaskCanvas.getContext('2d');
+            const maskData = maskCtx.getImageData(0, 0, width, height);
+
+            const reconstructedImageData = new ImageData(
+                new Uint8ClampedArray(mrState.originalImageData.data),
+                width,
+                height
+            );
+            const pixels = reconstructedImageData.data;
+            const baseAlpha = mrState.intensity / 100;
+            const thresholdLevel = (mrState.threshold / 100) * 255;
+
+            for (let i = 0; i < pixels.length; i += 4) {
+                const maskValue = maskData.data[i + 3];
+                if (maskValue > 0) {
+                    const R = pixels[i];
+                    const G = pixels[i + 1];
+                    const B = pixels[i + 2];
+                    const brightness = 0.299 * R + 0.587 * G + 0.114 * B;
+                    let shouldProcess = true;
+
+                    if (mrState.watermarkColor === 'white') {
+                        if (brightness < thresholdLevel) shouldProcess = false;
+                    } else {
+                        if (brightness > (255 - thresholdLevel)) shouldProcess = false;
+                    }
+
+                    if (shouldProcess) {
+                        const maskWeight = maskValue / 255.0;
+                        const effectiveAlpha = baseAlpha * maskWeight;
+                        const div = Math.max(0.01, 1 - effectiveAlpha);
+                        const W = mrState.watermarkColor === 'white' ? 255 : 0;
+                        let newR = (R - W * effectiveAlpha) / div;
+                        let newG = (G - W * effectiveAlpha) / div;
+                        let newB = (B - W * effectiveAlpha) / div;
+                        pixels[i] = Math.max(0, Math.min(255, newR));
+                        pixels[i + 1] = Math.max(0, Math.min(255, newG));
+                        pixels[i + 2] = Math.max(0, Math.min(255, newB));
+                    }
+                }
+            }
+
+            const finalPixels = new Uint8ClampedArray(pixels);
+            // Fix 2: dilationRange = 6
+            const dilationRange = 6;
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = (y * width + x) * 4;
+                    if (maskData.data[idx + 3] > 0) {
+                        let bgR = 0, bgG = 0, bgB = 0;
+                        let bgCount = 0;
+                        for (let dy = -dilationRange; dy <= dilationRange; dy++) {
+                            for (let dx = -dilationRange; dx <= dilationRange; dx++) {
+                                if (dx === 0 && dy === 0) continue;
+                                const nx = x + dx;
+                                const ny = y + dy;
+                                if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                                    const nIdx = (ny * width + nx) * 4;
+                                    if (maskData.data[nIdx + 3] === 0) {
+                                        bgR += pixels[nIdx];
+                                        bgG += pixels[nIdx + 1];
+                                        bgB += pixels[nIdx + 2];
+                                        bgCount++;
+                                    }
+                                }
+                            }
+                        }
+                        if (bgCount > 0) {
+                            finalPixels[idx] = bgR / bgCount;
+                            finalPixels[idx + 1] = bgG / bgCount;
+                            finalPixels[idx + 2] = bgB / bgCount;
+                        }
+                    }
+                }
+            }
+            ctx.putImageData(new ImageData(finalPixels, width, height), 0, 0);
+            mrUpdateResultImage();
+        }
+
+        async function mrApplyInpainting() {
+            if (!mrState.image || mrState.isProcessing) return;
+            mrState.isProcessing = true;
+            mrLoadingOverlay.style.display = 'flex';
+            mrProgress.textContent = '0';
+
+            // Allow UI to update
+            await new Promise(r => setTimeout(r, 50));
+
+            const imgCanvas = mrImageCanvas;
+            const ctx = imgCanvas.getContext('2d', { willReadFrequently: true });
+            const maskCtx = mrMaskCanvas.getContext('2d', { willReadFrequently: true });
+            const width = imgCanvas.width;
+            const height = imgCanvas.height;
+
+            const imgData = ctx.getImageData(0, 0, width, height);
+            const maskData = maskCtx.getImageData(0, 0, width, height);
+            const pixels = imgData.data;
+
+            const isMasked = new Uint8Array(width * height);
+            let maskedPixelCount = 0;
+
+            for (let i = 0; i < width * height; i++) {
+                if (maskData.data[i * 4 + 3] > 50) {
+                    isMasked[i] = 1;
+                    maskedPixelCount++;
+                } else {
+                    isMasked[i] = 0;
+                }
+            }
+
+            if (maskedPixelCount === 0) {
+                mrState.isProcessing = false;
+                mrLoadingOverlay.style.display = 'none';
+                return;
+            }
+
+            const patchRadius = 3;
+            const searchRadius = Math.min(width, height) / 3;
+            const initialMaskedCount = maskedPixelCount;
+
+            const processBatch = async () => {
+                let currentMaskedCount = maskedPixelCount;
+                while (currentMaskedCount > 0) {
+                    const contourPixels = [];
+                    for (let y = 0; y < height; y++) {
+                        for (let x = 0; x < width; x++) {
+                            const idx = y * width + x;
+                            if (isMasked[idx] === 1) {
+                                let hasCleanNeighbor = false;
+                                if (x > 0 && isMasked[idx - 1] === 0) hasCleanNeighbor = true;
+                                else if (x < width - 1 && isMasked[idx + 1] === 0) hasCleanNeighbor = true;
+                                else if (y > 0 && isMasked[idx - width] === 0) hasCleanNeighbor = true;
+                                else if (y < height - 1 && isMasked[idx + width] === 0) hasCleanNeighbor = true;
+                                if (hasCleanNeighbor) contourPixels.push({ x, y });
+                            }
+                        }
+                    }
+                    if (contourPixels.length === 0) break;
+
+                    const BATCH_SIZE = 500;
+                    for (let i = 0; i < contourPixels.length; i += BATCH_SIZE) {
+                        const batch = contourPixels.slice(i, i + BATCH_SIZE);
+                        for (const point of batch) {
+                            const { x, y } = point;
+                            const targetIdx = (y * width + x) * 4;
+                            let bestScore = Infinity;
+                            let bestR = 0, bestG = 0, bestB = 0;
+                            const SAMPLES = 10;
+
+                            for (let s = 0; s < SAMPLES; s++) {
+                                const angle = Math.random() * Math.PI * 2;
+                                const dist = Math.random() * searchRadius;
+                                const sx = Math.floor(x + Math.cos(angle) * dist);
+                                const sy = Math.floor(y + Math.sin(angle) * dist);
+                                if (sx < patchRadius || sx >= width - patchRadius || sy < patchRadius || sy >= height - patchRadius) continue;
+                                const sourceCenterIdx = sy * width + sx;
+                                if (isMasked[sourceCenterIdx] === 1) continue;
+
+                                let score = 0;
+                                let pixelCount = 0;
+                                for (let py = -patchRadius; py <= patchRadius; py += 2) {
+                                    for (let px = -patchRadius; px <= patchRadius; px += 2) {
+                                        const ty = y + py;
+                                        const tx = x + px;
+                                        if (ty < 0 || ty >= height || tx < 0 || tx >= width) continue;
+                                        const tPos = ty * width + tx;
+                                        if (isMasked[tPos] === 0) {
+                                            const soy = sy + py;
+                                            const sox = sx + px;
+                                            const sIdx = (soy * width + sox) * 4;
+                                            const tIdx = tPos * 4;
+                                            const dr = pixels[tIdx] - pixels[sIdx];
+                                            const dg = pixels[tIdx + 1] - pixels[sIdx + 1];
+                                            const db = pixels[tIdx + 2] - pixels[sIdx + 2];
+                                            score += dr * dr + dg * dg + db * db;
+                                            pixelCount++;
+                                        }
+                                    }
+                                }
+                                if (pixelCount > 0) {
+                                    score /= pixelCount;
+                                    if (score < bestScore) {
+                                        bestScore = score;
+                                        const bestSrcIdx = (sy * width + sx) * 4;
+                                        bestR = pixels[bestSrcIdx];
+                                        bestG = pixels[bestSrcIdx + 1];
+                                        bestB = pixels[bestSrcIdx + 2];
+                                    }
+                                }
+                            }
+                            if (bestScore !== Infinity) {
+                                pixels[targetIdx] = bestR;
+                                pixels[targetIdx + 1] = bestG;
+                                pixels[targetIdx + 2] = bestB;
+                                isMasked[y * width + x] = 0;
+                                currentMaskedCount--;
+                            }
+                        }
+                        ctx.putImageData(imgData, 0, 0);
+                        const progressPercent = Math.round(((initialMaskedCount - currentMaskedCount) / initialMaskedCount) * 100);
+                        mrProgress.textContent = progressPercent;
+                        await new Promise(r => setTimeout(r, 0));
+                    }
+                }
+            };
+
+            await processBatch();
+
+            mrState.isProcessing = false;
+            mrLoadingOverlay.style.display = 'none';
+            maskCtx.clearRect(0, 0, width, height);
+            mrState.maskPaths = [];
+            mrUpdateResultImage();
+        }
+
+        function mrDownloadResult() {
+            if (!mrState.resultImage) return;
+            const link = document.createElement('a');
+            link.download = 'watermark-removed.jpg';
+            link.href = mrState.resultImage;
+            link.click();
+        }
+
+        // Initialize
+        initMagicRemoverEvents();
+
+
+
+        /* =========================================
+           End Magic Remover Logic
+           ========================================= */
     </script>
+
 
 
 </body>
