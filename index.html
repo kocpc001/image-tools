@@ -1083,7 +1083,8 @@
         <button id="screenshotArrangeMode" class="mode-button">截圖並排</button>
         <button id="borderlessScreenshotArrangeMode" class="mode-button">無邊框截圖並排</button>
         <button id="chineseConvMode" class="mode-button">簡繁轉換</button>
-        <button id="magicRemoverMode" class="mode-button">去浮水印</button>
+        <button id="magicRemoverMode" class="mode-button"
+            onclick="window.open('https://watermarkrem-l7wtq3nz.manus.space/', '_blank')">去浮水印</button>
         <button id="advancedMagicRemoverMode" class="mode-button"
             onclick="window.open('https://gemini.google.com/share/846c59512fa9', '_blank')">進階去浮水印</button>
     </div>
@@ -1758,7 +1759,7 @@
         screenshotArrangeModeBtn.addEventListener('click', () => setMode('screenshotArrange'));
         cropImageModeBtn.addEventListener('click', () => setMode('cropImage')); // 新增：裁切模式按鈕事件
         chineseConvModeBtn.addEventListener('click', () => setMode('chineseConv'));
-        magicRemoverModeBtn.addEventListener('click', () => setMode('magicRemover'));
+        // magicRemoverModeBtn.addEventListener('click', () => setMode('magicRemover'));
         selectLogoBtn.addEventListener('click', () => logoInput.click());
         selectAdaLogoBtn.addEventListener('click', () => logoInput.click());
 
