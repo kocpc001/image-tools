@@ -466,6 +466,33 @@
             background-color: #f7fafc;
         }
 
+        /* HTML Cleaner 樣式 */
+        #htmlCleanerArea {
+            display: none;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .cleaner-tag {
+            background: #edf2f7;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+
+        .cleaner-tag-remove {
+            cursor: pointer;
+            color: #e53e3e;
+            font-weight: bold;
+        }
+
         .mr-header {
             background-color: #1e293b;
             border-bottom: 1px solid #334155;
@@ -1083,6 +1110,7 @@
         <button id="screenshotArrangeMode" class="mode-button">截圖並排</button>
         <button id="borderlessScreenshotArrangeMode" class="mode-button">無邊框截圖並排</button>
         <button id="chineseConvMode" class="mode-button">簡繁轉換</button>
+        <button id="htmlCleanerMode" class="mode-button">去除無用字元</button>
         <button id="magicRemoverMode" class="mode-button"
             onclick="window.open('https://watermarkrem-l7wtq3nz.manus.space/', '_blank')">去浮水印</button>
         <button id="advancedMagicRemoverMode" class="mode-button"
@@ -1443,6 +1471,96 @@
             </div>
         </div>
     </div>
+
+    <!-- HTML Cleaner 功能區塊 -->
+    <div id="htmlCleanerArea" style="display: none;">
+        <div class="conv-header">
+            <div class="conv-title">
+                去除無用字元 <span class="conv-subtitle">HTML Cleaner</span>
+            </div>
+        </div>
+        <div class="conv-main">
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <!-- 側邊欄設定 -->
+                <div
+                    style="width: 280px; flex-shrink: 0; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <h3 style="margin-top: 0; font-size: 16px;">基本設定</h3>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                            <input type="checkbox" id="cleanerRemovePath" checked> 移除 data-path-to-node
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                            <input type="checkbox" id="cleanerRemoveIndex" checked> 移除 data-index-in-node
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                            <input type="checkbox" id="cleanerAutocorrectPunct" checked> 自動修正標點符號 (半轉全)
+                        </label>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                            <input type="checkbox" id="cleanerAutocorrectSpace" checked> 中英文間距優化 (加空格)
+                        </label>
+                    </div>
+
+                    <h3 style="font-size: 16px;">自訂移除屬性</h3>
+                    <p style="font-size: 11px; color: #666; margin-bottom: 10px;">輸入屬性名稱 (如 class 或 id=123)</p>
+                    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                        <input type="text" id="cleanerNewAttr" placeholder="如: class"
+                            style="flex: 1; padding: 5px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 12px;">
+                        <button id="cleanerAddAttrBtn" class="btn-primary"
+                            style="padding: 5px 10px; font-size: 12px;">新增</button>
+                    </div>
+                    <div id="cleanerAttrList" style="display: flex; flex-wrap: wrap; gap: 5px;">
+                        <!-- 屬性標籤 -->
+                    </div>
+
+                    <h3 style="font-size: 16px; margin-top: 20px;">自訂移除標籤</h3>
+                    <p style="font-size: 11px; color: #666; margin-bottom: 10px;">保留標籤內的內容，僅移除標籤本身</p>
+                    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                        <input type="text" id="cleanerNewTag" placeholder="如: div"
+                            style="flex: 1; padding: 5px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: 12px;">
+                        <button id="cleanerAddTagBtn" class="btn-primary"
+                            style="padding: 5px 10px; font-size: 12px;">新增</button>
+                    </div>
+                    <div id="cleanerTagList" style="display: flex; flex-wrap: wrap; gap: 5px;">
+                        <!-- 標籤標籤 -->
+                    </div>
+                </div>
+
+                <!-- 編輯區 -->
+                <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 20px;">
+                    <div class="conv-section">
+                        <div class="conv-section-header">
+                            <span class="conv-label">HTML 輸入</span>
+                            <div class="conv-tools" style="opacity: 1">
+                                <button class="icon-btn" id="cleanerClearBtn" title="清除">🗑️</button>
+                                <button class="icon-btn" id="cleanerUploadBtn" title="上傳檔案">📂</button>
+                                <input type="file" id="cleanerFileInput" accept=".html,.htm,.txt" style="display:none">
+                            </div>
+                        </div>
+                        <textarea id="cleanerInput" class="conv-textarea" style="height: 250px;"
+                            placeholder="在此貼上 HTML 代碼..."></textarea>
+                    </div>
+
+                    <div class="conv-section">
+                        <div class="conv-section-header">
+                            <span class="conv-label">清理結果</span>
+                            <div class="conv-tools" style="opacity: 1">
+                                <button class="icon-btn" id="cleanerDownloadBtn" title="下載結果">⬇️</button>
+                                <button class="icon-btn" id="cleanerCopyBtn" title="複製結果">📋</button>
+                            </div>
+                        </div>
+                        <textarea id="cleanerOutput" class="conv-textarea" style="height: 250px;" readonly
+                            placeholder="處理後的代碼將顯示於此..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="dictDialog">
         <div class="dict-content">
             <div class="dict-header">
@@ -1759,6 +1877,9 @@
         screenshotArrangeModeBtn.addEventListener('click', () => setMode('screenshotArrange'));
         cropImageModeBtn.addEventListener('click', () => setMode('cropImage')); // 新增：裁切模式按鈕事件
         chineseConvModeBtn.addEventListener('click', () => setMode('chineseConv'));
+        const htmlCleanerModeBtn = document.getElementById('htmlCleanerMode');
+        const htmlCleanerArea = document.getElementById('htmlCleanerArea');
+        htmlCleanerModeBtn.addEventListener('click', () => setMode('htmlCleaner'));
         // magicRemoverModeBtn.addEventListener('click', () => setMode('magicRemover'));
         selectLogoBtn.addEventListener('click', () => logoInput.click());
         selectAdaLogoBtn.addEventListener('click', () => logoInput.click());
@@ -1909,7 +2030,7 @@
             }
 
             currentMode = mode;
-            [resize320ModeBtn, resize1080ModeBtn, addWatermarkModeBtn, adaSpecialModeBtn, screenshotArrangeModeBtn, cropImageModeBtn, borderlessScreenshotArrangeModeBtn, chineseConvModeBtn, magicRemoverModeBtn].forEach(btn => btn.classList.remove('active'));
+            [resize320ModeBtn, resize1080ModeBtn, addWatermarkModeBtn, adaSpecialModeBtn, screenshotArrangeModeBtn, cropImageModeBtn, borderlessScreenshotArrangeModeBtn, chineseConvModeBtn, htmlCleanerModeBtn, magicRemoverModeBtn].forEach(btn => btn.classList.remove('active'));
 
             selectLogoBtn.style.display = 'none';
             selectAdaLogoBtn.style.display = 'none';
@@ -1919,6 +2040,7 @@
             borderlessScreenshotArrangeDiv.style.display = 'none';
             cropImageArea.style.display = 'none';
             chineseConvArea.style.display = 'none';
+            htmlCleanerArea.style.display = 'none';
             magicRemoverArea.style.display = 'none';
 
             // 清除之前的處理檔案資訊
@@ -1984,10 +2106,14 @@
                 dropZone.style.display = 'none';
                 fileInput.style.display = 'none';
                 previewArea.style.display = 'none';
-            } else if (mode === 'magicRemover') {
-                magicRemoverModeBtn.classList.add('active');
-                pageTitle.textContent = '去浮水印';
                 magicRemoverArea.style.display = 'block';
+                dropZone.style.display = 'none';
+                fileInput.style.display = 'none';
+                previewArea.style.display = 'none';
+            } else if (mode === 'htmlCleaner') {
+                htmlCleanerModeBtn.classList.add('active');
+                pageTitle.textContent = '去除無用字元';
+                htmlCleanerArea.style.display = 'block';
                 dropZone.style.display = 'none';
                 fileInput.style.display = 'none';
                 previewArea.style.display = 'none';
@@ -5129,6 +5255,222 @@
 
         /* =========================================
            End Magic Remover Logic
+           ========================================= */
+
+        /* =========================================
+           HTML Cleaner Logic
+           ========================================= */
+        const cleanerInput = document.getElementById('cleanerInput');
+        const cleanerOutput = document.getElementById('cleanerOutput');
+        const cleanerRemovePath = document.getElementById('cleanerRemovePath');
+        const cleanerRemoveIndex = document.getElementById('cleanerRemoveIndex');
+        const cleanerNewAttr = document.getElementById('cleanerNewAttr');
+        const cleanerAddAttrBtn = document.getElementById('cleanerAddAttrBtn');
+        const cleanerAttrList = document.getElementById('cleanerAttrList');
+        const cleanerNewTag = document.getElementById('cleanerNewTag');
+        const cleanerAddTagBtn = document.getElementById('cleanerAddTagBtn');
+        const cleanerTagList = document.getElementById('cleanerTagList');
+        const cleanerClearBtn = document.getElementById('cleanerClearBtn');
+        const cleanerUploadBtn = document.getElementById('cleanerUploadBtn');
+        const cleanerFileInput = document.getElementById('cleanerFileInput');
+        const cleanerDownloadBtn = document.getElementById('cleanerDownloadBtn');
+        const cleanerCopyBtn = document.getElementById('cleanerCopyBtn');
+        const cleanerAutocorrectPunct = document.getElementById('cleanerAutocorrectPunct');
+        const cleanerAutocorrectSpace = document.getElementById('cleanerAutocorrectSpace');
+
+        let cleanerOptions = {
+            removeDataPathToNode: true,
+            removeDataIndexInNode: true,
+            autocorrectPunct: true,
+            autocorrectSpace: true,
+            customAttributes: [],
+            customTags: []
+        };
+
+        function updateCleaner() {
+            const html = cleanerInput.value;
+            cleanerOptions.removeDataPathToNode = cleanerRemovePath.checked;
+            cleanerOptions.removeDataIndexInNode = cleanerRemoveIndex.checked;
+            cleanerOptions.autocorrectPunct = cleanerAutocorrectPunct.checked;
+            cleanerOptions.autocorrectSpace = cleanerAutocorrectSpace.checked;
+            const cleaned = cleanHtmlLogic(html, cleanerOptions);
+            cleanerOutput.value = cleaned;
+        }
+
+        function cleanHtmlLogic(html, options) {
+            if (!html) return "";
+            const parser = new DOMParser();
+
+            // 嘗試解析 HTML
+            let doc;
+            try {
+                doc = parser.parseFromString(html, "text/html");
+            } catch (e) {
+                console.error("HTML 解析失敗:", e);
+                return html;
+            }
+
+            const walk = (node) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    const el = node;
+
+                    // 移除屬性
+                    if (options.removeDataPathToNode) {
+                        if (el.hasAttribute("data-path-to-node")) el.removeAttribute("data-path-to-node");
+                    }
+                    if (options.removeDataIndexInNode) {
+                        if (el.hasAttribute("data-index-in-node")) el.removeAttribute("data-index-in-node");
+                    }
+
+                    options.customAttributes.forEach(rawAttr => {
+                        if (!rawAttr) return;
+                        const attrName = rawAttr.split('=')[0].trim();
+                        if (attrName && el.hasAttribute(attrName)) el.removeAttribute(attrName);
+                    });
+                } else if (node.nodeType === Node.TEXT_NODE) {
+                    let text = node.textContent;
+                    if (options.autocorrectPunct) {
+                        text = text.replace(/,/g, '，')
+                            .replace(/;/g, '；')
+                            .replace(/:/g, '：')
+                            .replace(/\./g, '。')
+                            .replace(/\(/g, '（')
+                            .replace(/\)/g, '）');
+                    }
+                    if (options.autocorrectSpace) {
+                        // 中英文間距優化：中文與英文/數字之間加空格
+                        text = text.replace(/([\u4e00-\u9fa5])([a-zA-Z0-9])/g, '$1 $2')
+                            .replace(/([a-zA-Z0-9])([\u4e00-\u9fa5])/g, '$1 $2');
+                    }
+                    node.textContent = text;
+                }
+
+                // 遞迴處理子節點
+                let child = node.firstChild;
+                while (child) {
+                    const next = child.nextSibling;
+                    walk(child);
+                    child = next;
+                }
+
+                // 處理標籤展開 (Unwrap)
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    const el = node;
+                    const tagName = el.tagName.toLowerCase();
+                    if (options.customTags.includes(tagName)) {
+                        const parent = el.parentNode;
+                        if (parent) {
+                            while (el.firstChild) {
+                                parent.insertBefore(el.firstChild, el);
+                            }
+                            parent.removeChild(el);
+                        }
+                    }
+                }
+            };
+
+            const isFullDocument = html.trim().toLowerCase().startsWith("<!doctype") || html.trim().toLowerCase().startsWith("<html");
+
+            if (isFullDocument) {
+                walk(doc.documentElement);
+                return doc.documentElement.outerHTML;
+            } else {
+                walk(doc.body);
+                return doc.body.innerHTML;
+            }
+        }
+
+        function renderCleanerTags() {
+            cleanerAttrList.innerHTML = '';
+            cleanerOptions.customAttributes.forEach(attr => {
+                const tag = document.createElement('div');
+                tag.className = 'cleaner-tag';
+                tag.innerHTML = `<span>${attr}</span><span class="cleaner-tag-remove" onclick="removeCleanerAttr('${attr}')">×</span>`;
+                cleanerAttrList.appendChild(tag);
+            });
+
+            cleanerTagList.innerHTML = '';
+            cleanerOptions.customTags.forEach(tagName => {
+                const tag = document.createElement('div');
+                tag.className = 'cleaner-tag';
+                tag.innerHTML = `<span>${tagName}</span><span class="cleaner-tag-remove" onclick="removeCleanerTag('${tagName}')">×</span>`;
+                cleanerTagList.appendChild(tag);
+            });
+        }
+
+        window.removeCleanerAttr = (attr) => {
+            cleanerOptions.customAttributes = cleanerOptions.customAttributes.filter(a => a !== attr);
+            renderCleanerTags();
+            updateCleaner();
+        };
+
+        window.removeCleanerTag = (tagName) => {
+            cleanerOptions.customTags = cleanerOptions.customTags.filter(t => t !== tagName);
+            renderCleanerTags();
+            updateCleaner();
+        };
+
+        cleanerAddAttrBtn.addEventListener('click', () => {
+            const val = cleanerNewAttr.value.trim();
+            if (val && !cleanerOptions.customAttributes.includes(val)) {
+                cleanerOptions.customAttributes.push(val);
+                cleanerNewAttr.value = '';
+                renderCleanerTags();
+                updateCleaner();
+            }
+        });
+
+        cleanerAddTagBtn.addEventListener('click', () => {
+            const val = cleanerNewTag.value.trim().toLowerCase();
+            if (val && !cleanerOptions.customTags.includes(val)) {
+                cleanerOptions.customTags.push(val);
+                cleanerNewTag.value = '';
+                renderCleanerTags();
+                updateCleaner();
+            }
+        });
+
+        cleanerInput.addEventListener('input', updateCleaner);
+        cleanerRemovePath.addEventListener('change', updateCleaner);
+        cleanerRemoveIndex.addEventListener('change', updateCleaner);
+        cleanerAutocorrectPunct.addEventListener('change', updateCleaner);
+        cleanerAutocorrectSpace.addEventListener('change', updateCleaner);
+
+        cleanerClearBtn.addEventListener('click', () => {
+            cleanerInput.value = '';
+            updateCleaner();
+        });
+
+        cleanerUploadBtn.addEventListener('click', () => cleanerFileInput.click());
+        cleanerFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                cleanerInput.value = event.target.result;
+                updateCleaner();
+            };
+            reader.readAsText(file);
+        });
+
+        cleanerCopyBtn.addEventListener('click', () => {
+            cleanerOutput.select();
+            document.execCommand('copy');
+            alert('已複製到剪貼簿');
+        });
+
+        cleanerDownloadBtn.addEventListener('click', () => {
+            const blob = new Blob([cleanerOutput.value], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cleaned.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        /* =========================================
+           End HTML Cleaner Logic
            ========================================= */
     </script>
 
