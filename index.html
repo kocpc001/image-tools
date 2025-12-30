@@ -712,10 +712,279 @@
                 opacity: 0;
                 transition: opacity 0.2s;
             }
+        }
 
-            .mr-batch-item:hover .mr-batch-delete {
-                opacity: 1;
+        .mr-switch input {
+            cursor: pointer;
+        }
+
+        /* Batch Image Grid Styles */
+        .mr-batch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            width: 100%;
+            padding: 15px;
+            max-height: 100%;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        .mr-batch-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: #f0f0f0;
+            transition: transform 0.2s;
+        }
+
+        .mr-batch-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .mr-batch-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .mr-batch-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            backdrop-filter: blur(2px);
+        }
+
+        .mr-batch-badge.success {
+            background: #48bb78;
+        }
+
+        .mr-batch-badge.processing {
+            background: #ed8936;
+        }
+
+        .mr-batch-delete {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #e53e3e;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .mr-batch-item:hover .mr-batch-delete {
+            opacity: 1;
+        }
+
+        /* Word Table to HTML Styles Refined - Absolute Positioning Strategy */
+        #wordTableToHtmlArea {
+            display: none;
+            background-color: #f8fafc;
+            padding: 20px;
+            width: 100%;
+            height: calc(100vh - 100px);
+            /* Use viewport height */
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .wt-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .wt-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 100%;
+            min-width: 0;
+            position: relative;
+        }
+
+        .wt-card {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            height: 100%;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+            /* Context for absolute children */
+        }
+
+        .wt-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            flex-shrink: 0;
+            height: 40px;
+        }
+
+        .wt-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1e293b;
+        }
+
+        /* Tabs Header */
+        .wt-tabs-header {
+            display: flex;
+            flex-direction: row !important;
+            /* Force row */
+            flex-wrap: nowrap !important;
+            border-bottom: 1px solid #f1f5f9;
+            background: rgba(241, 245, 249, 0.5);
+            padding: 0 16px;
+            height: 48px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .wt-tab-item {
+            padding: 0 16px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: #64748b;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .wt-tab-item:hover {
+            color: #0f172a;
+        }
+
+        .wt-tab-item.active {
+            color: #0f172a;
+            border-bottom-color: #2563eb;
+            background: white;
+        }
+
+        /* Tab Content - Absolute Positioning for stability */
+        .wt-tab-content {
+            display: none;
+            position: absolute;
+            top: 48px;
+            /* Height of tabs header */
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: white;
+            overflow: auto;
+            /* Enable scrollbars for content */
+        }
+
+        .wt-tab-content.active {
+            display: block;
+        }
+
+        /* Force preview table to have a minimum width to ensure readability and trigger scrollbar */
+        #wtPreview table {
+            min-width: 800px !important;
+        }
+
+        /* Specific modifications for Code View */
+        #wtTabCode {
+            background: #020617;
+            /* Dark background */
+        }
+
+        .wt-code-textarea {
+            display: block;
+            width: 100%;
+            height: 100%;
+            /* Fill absolute container */
+            resize: none;
+            border: none;
+            background: transparent;
+            color: #f8fafc;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            padding: 20px;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+            margin: 0;
+            white-space: pre;
+            /* Ensure code doesn't wrap unnecessarily if not desired, or pre-wrap */
+            overflow: auto;
+            /* Ensure scrollbars on textarea */
+        }
+
+        /* Input Card Content - Use Flexbox for Input to respect sibling header */
+        #wtInput {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            height: auto;
+            overflow: auto;
+            padding: 24px;
+            outline: none;
+            box-sizing: border-box;
+            white-space: normal;
+            /* Ensure normal text wrapping behavior in input */
+        }
+
+        /* Ensure the input wrapper/card handles flex correctly */
+        .wt-input-wrapper {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 1024px) {
+            .wt-container {
+                grid-template-columns: 1fr;
+                height: auto;
+                display: block;
+                /* Stack them */
             }
+
+            .wt-column {
+                height: 500px;
+                /* Fixed height for mobile sections */
+                margin-bottom: 20px;
+            }
+
+            #wordTableToHtmlArea {
+                height: auto;
+            }
+        }
     </style>
 
 </head>
@@ -751,8 +1020,7 @@
         <button id="chineseConvMode" class="mode-button">簡繁轉換</button>
         <button id="htmlCleanerMode" class="mode-button">去除無用字元</button>
         <button id="magicRemoverMode" class="mode-button">去浮水印</button>
-        <button id="advancedMagicRemoverMode" class="mode-button"
-            onclick="window.open('https://gemini.google.com/share/846c59512fa9', '_blank')">進階去浮水印</button>
+        <button id="wordTableMode" class="mode-button">Word表格轉HTML</button>
     </div>
     <div id="dropZone">
         <p>拖曳圖片到這裡或點擊選擇檔案</p>
@@ -1276,6 +1544,156 @@
             </div>
         </div>
     </div>
+
+    <!-- Word Table to HTML 區塊 -->
+    <div id="wordTableToHtmlArea">
+        <div class="conv-header" style="margin-bottom: 20px;">
+            <div class="conv-title" style="display: flex; gap: 10px; align-items: center;">
+                <div style="background: rgba(37, 99, 235, 0.1); padding: 5px; border-radius: 8px;">
+                    <!-- LayoutTemplate icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="w-6 h-6 text-primary">
+                        <rect width="18" height="18" x="3" y="3" rx="2" />
+                        <path d="M3 9h18" />
+                        <path d="M9 21V9" />
+                    </svg>
+                </div>
+                <div>
+                    <div>Word 表格轉 HTML</div>
+                    <div style="font-size: 0.8rem; color: #718096; font-weight: normal;">專業表格轉換工具</div>
+                </div>
+            </div>
+            <div style="display: flex; gap: 5px;">
+                <!-- Header actions if any -->
+            </div>
+        </div>
+
+        <div class="wt-container">
+            <!-- Left: Input -->
+            <div class="wt-column">
+                <div class="wt-card-header">
+                    <div class="wt-card-title">
+                        <div style="background: rgba(37, 99, 235, 0.1); padding: 5px; border-radius: 6px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" x2="8" y1="13" y2="13" />
+                                <line x1="16" x2="8" y1="17" y2="17" />
+                                <line x1="10" x2="8" y1="9" y2="9" />
+                            </svg>
+                        </div>
+                        輸入來源
+                    </div>
+                    <button id="wtClearBtn" class="btn-outline" style="color: #718096; border-color: transparent;">
+                        <!-- Eraser icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="margin-right: 5px;">
+                            <path
+                                d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" />
+                            <path d="M22 21H7" />
+                            <path d="m5 11 9 9" />
+                        </svg>
+                        清空
+                    </button>
+                </div>
+
+                <div class="wt-card"
+                    style="flex: 1; display: flex; flex-direction: column; overflow: hidden; border: 2px dashed #e2e8f0; transition: border-color 0.2s;">
+                    <div
+                        style="background: rgba(241, 245, 249, 0.5); padding: 8px 16px; border-bottom: 1px solid #e2e8f0; font-size: 12px; color: #64748b; display: flex; justify-content: space-between; align-items: center;">
+                        <span>請在此處貼上 Word 表格 (Ctrl+V)</span>
+                        <span
+                            style="background: rgba(37, 99, 235, 0.1); color: #2563eb; padding: 2px 6px; border-radius: 4px; font-weight: 500; font-size: 10px;">自動偵測</span>
+                    </div>
+                    <div id="wtInput" class="wt-input-area" contenteditable="true"
+                        data-placeholder="在此處貼上您的 Word 表格..."></div>
+                </div>
+
+                <div
+                    style="background: rgba(239, 246, 255, 0.5); border: 1px solid rgba(219, 234, 254, 0.5); padding: 15px; border-radius: 8px; margin-top: 15px; display: flex; gap: 12px; color: #1e40af;">
+                    <div style="margin-top: 2px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14" />
+                            <path d="m12 5 7 7-7 7" />
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-weight: 500; font-size: 14px; margin-bottom: 5px;">使用說明：</div>
+                        <ul
+                            style="list-style-type: disc; padding-left: 20px; margin: 0; font-size: 13px; opacity: 0.9; line-height: 1.6;">
+                            <li>直接從 Word 複製表格並貼上到上方區域</li>
+                            <li>系統會自動轉換為 100% 寬度的 HTML 表格</li>
+                            <li>格子寬度將自動轉換為百分比</li>
+                            <li>格子內斷行間距會自動設為 0</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Output -->
+            <div class="wt-column">
+                <div class="wt-card-header">
+                    <div class="wt-card-title">
+                        <div style="background: rgba(22, 163, 74, 0.1); padding: 5px; border-radius: 6px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polyline points="16 18 22 12 16 6" />
+                                <polyline points="8 6 2 12 8 18" />
+                            </svg>
+                        </div>
+                        轉換結果
+                    </div>
+                    <button id="wtCopyBtn" class="btn-primary" disabled
+                        style="display: flex; align-items: center; gap: 5px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                        </svg>
+                        複製 HTML
+                    </button>
+                </div>
+
+                <div class="wt-card">
+                    <div class="wt-tabs-header">
+                        <div class="wt-tab-item active" data-tab="preview">預覽效果</div>
+                        <div class="wt-tab-item" data-tab="code">HTML 代碼</div>
+                    </div>
+
+                    <div class="wt-tab-content active" id="wtTabPreview">
+                        <div id="wtPreview" style="padding: 24px; min-height: 100%;">
+                            <div
+                                style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; color: #94a3b8; text-align: center;">
+                                <div
+                                    style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" style="opacity: 0.5;">
+                                        <rect width="18" height="18" x="3" y="3" rx="2" />
+                                        <path d="M3 9h18" />
+                                        <path d="M9 21V9" />
+                                    </svg>
+                                </div>
+                                <p style="font-size: 16px; margin-bottom: 8px;">等待輸入...</p>
+                                <p style="font-size: 13px; opacity: 0.7;">貼上表格後將在此處顯示預覽</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wt-tab-content" id="wtTabCode">
+                        <textarea id="wtCode" class="wt-code-textarea" readonly
+                            placeholder="<!-- HTML 代碼將顯示於此 -->"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="dictDialog">
         <div class="dict-content">
             <div class="dict-header">
@@ -1493,6 +1911,7 @@
         const cropImageModeBtn = document.getElementById('cropImageMode');
         const chineseConvModeBtn = document.getElementById('chineseConvMode');
         const magicRemoverModeBtn = document.getElementById('magicRemoverMode');
+        const wordTableModeBtn = document.getElementById('wordTableMode');
         const logoInput = document.getElementById('logoInput');
         const logoStatus = document.getElementById('logoStatus');
         const logoPreview = document.getElementById('logoPreview');
@@ -1504,6 +1923,7 @@
         const cropImageArea = document.getElementById('cropImageArea');
         const chineseConvArea = document.getElementById('chineseConvArea');
         const magicRemoverArea = document.getElementById('magicRemoverArea');
+        const wordTableToHtmlArea = document.getElementById('wordTableToHtmlArea');
         // const cropFileInput = document.getElementById('cropFileInput'); // 移除，因為已統一使用 fileInput
         const cropCanvas = document.getElementById('cropCanvas');
         const cropCtx = cropCanvas.getContext('2d');
@@ -1598,6 +2018,7 @@
         const htmlCleanerModeBtn = document.getElementById('htmlCleanerMode');
         const htmlCleanerArea = document.getElementById('htmlCleanerArea');
         htmlCleanerModeBtn.addEventListener('click', () => setMode('htmlCleaner'));
+        wordTableModeBtn.addEventListener('click', () => setMode('wordTable'));
         selectLogoBtn.addEventListener('click', () => logoInput.click());
         selectAdaLogoBtn.addEventListener('click', () => logoInput.click());
 
@@ -1751,7 +2172,7 @@
             }
 
             currentMode = mode;
-            [resize320ModeBtn, resize1080ModeBtn, addWatermarkModeBtn, adaSpecialModeBtn, screenshotArrangeModeBtn, cropImageModeBtn, borderlessScreenshotArrangeModeBtn, chineseConvModeBtn, htmlCleanerModeBtn, magicRemoverModeBtn].forEach(btn => btn.classList.remove('active'));
+            [resize320ModeBtn, resize1080ModeBtn, addWatermarkModeBtn, adaSpecialModeBtn, screenshotArrangeModeBtn, cropImageModeBtn, borderlessScreenshotArrangeModeBtn, chineseConvModeBtn, htmlCleanerModeBtn, magicRemoverModeBtn, wordTableModeBtn].forEach(btn => btn.classList.remove('active'));
 
             selectLogoBtn.style.display = 'none';
             selectAdaLogoBtn.style.display = 'none';
@@ -1763,6 +2184,7 @@
             chineseConvArea.style.display = 'none';
             htmlCleanerArea.style.display = 'none';
             magicRemoverArea.style.display = 'none';
+            wordTableToHtmlArea.style.display = 'none';
 
             // 清除之前的處理檔案資訊
             status.innerHTML = '';
@@ -1842,6 +2264,14 @@
                 fileInput.style.display = 'none';
                 previewArea.style.display = 'none';
                 if (typeof mrRefreshCanvas === 'function') mrRefreshCanvas();
+            } else if (mode === 'wordTable') {
+                wordTableModeBtn.classList.add('active');
+                pageTitle.textContent = 'Word 表格轉 HTML';
+                wordTableToHtmlArea.style.display = 'block';
+                dropZone.style.display = 'none';
+                fileInput.style.display = 'none';
+                previewArea.style.display = 'none';
+                setTimeout(() => document.getElementById('wtInput').focus(), 100);
             }
 
             // 清除檔案輸入
@@ -5149,10 +5579,10 @@
                 } else if (node.nodeType === Node.TEXT_NODE) {
                     let text = node.textContent;
                     if (options.autocorrectPunct) {
-                        text = text.replace(/,/g, '，')
+                        text = text.replace(/(?<!\d),|,(?!\d)/g, '，')
                             .replace(/;/g, '；')
                             .replace(/:/g, '：')
-                            .replace(/\./g, '。')
+                            .replace(/(?<!\d)\.|\.(?!\d)/g, '。')
                             .replace(/\(/g, '（')
                             .replace(/\)/g, '）');
                     }
@@ -5291,6 +5721,217 @@
         /* =========================================
            End HTML Cleaner Logic
            ========================================= */
+        /* =========================================
+           Word Table to HTML Logic
+           ========================================= */
+        const wtInput = document.getElementById('wtInput');
+        const wtPreview = document.getElementById('wtPreview');
+        const wtCode = document.getElementById('wtCode');
+        const wtClearBtn = document.getElementById('wtClearBtn');
+        const wtCopyBtn = document.getElementById('wtCopyBtn');
+        const wtTabs = document.querySelectorAll('.wt-tab-item');
+
+        // Tab Switching
+        wtTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab;
+
+                // Update tabs
+                wtTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Show content
+                document.querySelectorAll('.wt-tab-content').forEach(c => c.classList.remove('active'));
+
+                if (target === 'preview') {
+                    document.getElementById('wtTabPreview').classList.add('active');
+                } else {
+                    document.getElementById('wtTabCode').classList.add('active');
+                }
+            });
+        });
+
+        // Paste Handler
+        wtInput.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const html = e.clipboardData.getData('text/html');
+            const text = e.clipboardData.getData('text/plain');
+
+            if (html) {
+                // Determine if it's a full document or fragment and extract body content if needed
+                let contentToProcess = html;
+
+                // Convert
+                const result = convertWordTableToHtml(contentToProcess);
+
+                // Insert original (simplified) into input for visual feedback
+                // We actually just want to show the text representation or a simple preview in the input box
+                // But since it's contentEditable, let's just insert the text or a placeholder
+                document.execCommand('insertHTML', false, html);
+
+                updateWtOutput(result);
+            } else {
+                // Plain text fallback
+                document.execCommand('insertText', false, text);
+            }
+        });
+
+        // Clear Handler
+        wtClearBtn.addEventListener('click', () => {
+            wtInput.innerHTML = '';
+            // Reset preview
+            const emptyState = `
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; color: #94a3b8; text-align: center;">
+                    <div style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.5;"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                    </div>
+                    <p style="font-size: 16px; margin-bottom: 8px;">等待輸入...</p>
+                    <p style="font-size: 13px; opacity: 0.7;">貼上表格後將在此處顯示預覽</p>
+                </div>`;
+            wtPreview.innerHTML = emptyState;
+            wtCode.value = '';
+            wtCopyBtn.disabled = true;
+        });
+
+        // Copy Handler
+        wtCopyBtn.addEventListener('click', () => {
+            if (!wtCode.value) return;
+            wtCode.select();
+            document.execCommand('copy');
+            alert('HTML 代碼已複製到剪貼簿');
+        });
+
+        function updateWtOutput(result) {
+            if (result.error) {
+                alert(result.error);
+                return;
+            }
+            // Update Preview
+            wtPreview.innerHTML = result.html;
+            // Update Code
+            wtCode.value = result.html;
+            // Enable Copy
+            wtCopyBtn.disabled = false;
+        }
+
+        function convertWordTableToHtml(inputHtml) {
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(inputHtml, 'text/html');
+                const table = doc.querySelector('table');
+
+                if (!table) {
+                    return { error: '未檢測到表格，請確保您複製的是 Word 表格內容。' };
+                }
+
+                const newTable = document.createElement('table');
+                newTable.style.width = '100%';
+                newTable.style.borderCollapse = 'collapse';
+                newTable.style.border = '1px solid black';
+                newTable.style.color = 'black';
+                newTable.style.backgroundColor = 'transparent';
+
+                const rows = Array.from(table.rows);
+
+                // Calculate total width for percentages
+                let totalWidth = 0;
+                const firstRowCells = Array.from(rows[0]?.cells || []);
+                const cellWidths = [];
+
+                firstRowCells.forEach(cell => {
+                    let width = 0;
+                    const styleWidth = cell.style.width;
+                    const attrWidth = cell.getAttribute('width');
+
+                    if (styleWidth && styleWidth.includes('px')) {
+                        width = parseFloat(styleWidth);
+                    } else if (attrWidth) {
+                        width = parseFloat(attrWidth);
+                    }
+                    else if (cell.style.width && cell.style.width.includes('%')) {
+                        // If already %, we might just use it, but converting to absolute first is safer for normalization
+                        // For now, let's just try to parse it as is if we can't find px
+                        // Actually, Word usually gives px or pts.
+                    }
+
+                    cellWidths.push(width);
+                    totalWidth += width;
+                });
+
+                const hasValidWidths = totalWidth > 10;
+
+                rows.forEach((row) => {
+                    const newRow = document.createElement('tr');
+
+                    Array.from(row.cells).forEach((cell, index) => {
+                        const newCell = document.createElement(cell.tagName.toLowerCase() === 'th' ? 'th' : 'td');
+
+                        // Width
+                        if (hasValidWidths && cellWidths[index]) {
+                            const percent = (cellWidths[index] / totalWidth) * 100;
+                            newCell.style.width = `${percent.toFixed(2)}%`;
+                        } else if (!hasValidWidths) {
+                            // If no valid widths found, maybe distribute evenly or let auto?
+                            // Let's force equal width if only 1 row (header)? No, let's just let it be auto.
+                        }
+
+                        // Border
+                        newCell.style.border = '1px solid black';
+                        newCell.style.padding = '4px';
+                        newCell.style.backgroundColor = 'transparent';
+
+                        // Content processing
+                        const content = cell.innerHTML;
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = content;
+
+                        // Strip styles from p tags
+                        const paragraphs = tempDiv.querySelectorAll('p');
+                        paragraphs.forEach(p => {
+                            p.removeAttribute('style');
+                            p.removeAttribute('class');
+                            p.style.margin = '0';
+                            p.style.padding = '0';
+                            p.style.lineHeight = '1.2';
+                            p.style.color = 'black';
+                        });
+
+                        const allElements = tempDiv.querySelectorAll('*');
+                        allElements.forEach(el => {
+                            if (el instanceof HTMLElement) {
+                                el.style.color = 'black';
+                                el.style.backgroundColor = 'transparent';
+                            }
+                        });
+
+                        if (paragraphs.length === 0) {
+                            newCell.style.lineHeight = '1.2';
+                        }
+
+                        newCell.innerHTML = tempDiv.innerHTML;
+
+                        if (cell.colSpan > 1) newCell.colSpan = cell.colSpan;
+                        if (cell.rowSpan > 1) newCell.rowSpan = cell.rowSpan;
+
+                        const align = cell.style.textAlign || cell.getAttribute('align');
+                        if (align) newCell.style.textAlign = align;
+
+                        newRow.appendChild(newCell);
+                    });
+
+                    newTable.appendChild(newRow);
+                });
+
+                return {
+                    html: newTable.outerHTML,
+                    preview: newTable.outerHTML
+                };
+
+            } catch (e) {
+                console.error(e);
+                return { error: '轉換過程中發生錯誤: ' + e.message };
+            }
+        }
     </script>
 
 
