@@ -2383,7 +2383,7 @@
                     }
                     mrRefreshCanvas(); // Update UI
                 };
-                previewImg.src = finalCanvas.toDataURL('image/jpeg', 0.98);
+                previewImg.src = finalCanvas.toDataURL('image/jpeg', 0.85);
 
                 finalCanvas.toBlob((blob) => {
                     if (blob) {
@@ -2394,7 +2394,7 @@
                     } else {
                         throw new Error('Canvas conversions failed');
                     }
-                }, 'image/jpeg', 0.98);
+                }, 'image/jpeg', 0.85);
 
             } catch (err) {
                 console.error('One-Click Process Error:', err);
@@ -5628,7 +5628,7 @@
         document.getElementById('mrDownloadBtn').addEventListener('click', () => {
             const link = document.createElement('a');
             link.download = 'watermark_removed.jpg';
-            link.href = mrCurrentCanvas.toDataURL('image/jpeg', 0.95);
+            link.href = mrCurrentCanvas.toDataURL('image/jpeg', 0.85);
             link.click();
         });
 
