@@ -1144,6 +1144,11 @@
                             style="font-size: 0.9rem; padding: 6px 15px; min-width: auto;" disabled>
                             下載照片
                         </button>
+                        <button id="mrOneClickBtn" class="mr-btn"
+                            style="font-size: 0.9rem; padding: 6px 15px; min-width: auto; background-color: #eab308; color: white;"
+                            disabled>
+                            ⚡ 一鍵完成
+                        </button>
                     </div>
                 </div>
 
@@ -2278,6 +2283,129 @@
             fileInput.value = '';
         }
 
+        // Add event listener for One-Click button
+        document.getElementById('mrOneClickBtn').addEventListener('click', mrOneClickProcess);
+
+        // One-Click Process Function
+        // One-Click Process Function
+        async function mrOneClickProcess() {
+            if (currentMode !== 'magicRemover' || mrIsProcessing) return;
+
+            // Check if image is loaded
+            if (!mrOriginalImage) {
+                alert('請先載入圖片！');
+                return;
+            }
+
+            // Check if ADA Logo is loaded
+            if (!adaSpecialLogo) {
+                alert('請先在「電腦王阿達專用」模式中設定 Logo！');
+                return;
+            }
+
+            const btn = document.getElementById('mrOneClickBtn');
+            const originalText = btn.innerHTML;
+
+            try {
+                // Set Processing State
+                mrIsProcessing = true;
+                btn.innerHTML = '⏳ 處理中...';
+                mrUpdateButtons(); // Disable all buttons
+
+                // Initialize Engine if needed
+                if (!mrEngine) {
+                    try {
+                        mrEngine = await GeminiWatermarkEngine.create();
+                    } catch (e) {
+                        throw new Error("引擎初始化失敗: " + e.message);
+                    }
+                }
+
+                // 1. Prepare Image (Upscale if needed for better watermark removal)
+                console.log('--- One-Click: Step 1: Upscale & Remove Watermark ---');
+                const { canvas: upscaledCanvas } = await mrConditionalUpscale(mrOriginalImage);
+
+                // 2. Remove Watermark
+                await mrEngine.removeWatermark(upscaledCanvas);
+
+                // 3. Resize to 1000px (Longest side)
+                console.log('--- One-Click: Step 2: Resize to 1000px ---');
+                let targetW = upscaledCanvas.width;
+                let targetH = upscaledCanvas.height;
+                const longSide = Math.max(targetW, targetH);
+
+                if (longSide > 1000) {
+                    if (targetW > targetH) {
+                        targetW = 1000;
+                        targetH = (upscaledCanvas.height / upscaledCanvas.width) * 1000;
+                    } else {
+                        targetH = 1000;
+                        targetW = (upscaledCanvas.width / upscaledCanvas.height) * 1000;
+                    }
+                }
+
+                // Use high quality scaling
+                const resizedCanvas = safeAdvancedImageScale(upscaledCanvas, targetW, targetH, 'high');
+
+                // 4. Add Black Border
+                console.log('--- One-Click: Step 3: Add Border ---');
+                const borderedCanvas = addBlackBorder(resizedCanvas);
+
+                // 5. Add Ada Watermark
+                console.log('--- One-Click: Step 4: Add Ada Logo ---');
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = borderedCanvas.width;
+                finalCanvas.height = borderedCanvas.height;
+                const ctx = finalCanvas.getContext('2d');
+                setupHighQualityCanvas(ctx);
+                ctx.drawImage(borderedCanvas, 0, 0);
+
+                const logoWidth = adaSpecialLogo.width * 0.7;
+                const logoHeight = adaSpecialLogo.height * 0.7;
+                const logoX = finalCanvas.width - logoWidth - 15;
+                const logoY = finalCanvas.height - logoHeight - 15;
+
+                ctx.globalAlpha = 0.5;
+                ctx.drawImage(adaSpecialLogo, logoX, logoY, logoWidth, logoHeight);
+
+                // 6. Download & Preview
+                console.log('--- One-Click: Step 5: Download & Preview ---');
+
+                // Update Preview with the final result
+                const previewImg = new Image();
+                previewImg.onload = () => {
+                    mrOriginalImage = previewImg;
+                    mrHistory = []; // Reset history
+                    mrHistoryIndex = -1;
+                    if (mrMaskCanvas) {
+                        const mCtx = mrMaskCanvas.getContext('2d');
+                        mCtx.clearRect(0, 0, mrMaskCanvas.width, mrMaskCanvas.height);
+                    }
+                    mrRefreshCanvas(); // Update UI
+                };
+                previewImg.src = finalCanvas.toDataURL('image/jpeg', 0.98);
+
+                finalCanvas.toBlob((blob) => {
+                    if (blob) {
+                        const timestamp = new Date().getTime();
+                        const filename = `processed_${timestamp}.jpg`;
+                        const file = new File([blob], filename, { type: "image/jpeg" });
+                        saveAs(file);
+                    } else {
+                        throw new Error('Canvas conversions failed');
+                    }
+                }, 'image/jpeg', 0.98);
+
+            } catch (err) {
+                console.error('One-Click Process Error:', err);
+                alert('處理發生錯誤: ' + err.message);
+            } finally {
+                // Restore State
+                mrIsProcessing = false;
+                btn.innerHTML = originalText;
+                mrUpdateButtons(); // Re-enable buttons
+            }
+        }
         function handleFiles(e) {
             console.log('handleFiles triggered');
             e.preventDefault();
@@ -5040,6 +5168,8 @@
             const hasImg = !!mrOriginalImage;
             document.getElementById('mrProcessBtn').disabled = !hasImg || mrIsProcessing;
             document.getElementById('mrDownloadBtn').disabled = !hasImg || mrIsProcessing;
+            const oneClickBtn = document.getElementById('mrOneClickBtn');
+            if (oneClickBtn) oneClickBtn.disabled = !hasImg || mrIsProcessing;
             document.getElementById('mrBrushSizeGroup').style.display = document.getElementById('mrGeminiMode').checked ? 'none' : 'block';
         }
 
