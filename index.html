@@ -1743,18 +1743,54 @@
         // ============ 安全的高級圖像縮放算法 (修復線條問題) ============
 
         // 添加黑框函數 (Global Scope)
+        // 添加黑框函數 (Global Scope)
         function addBlackBorder(canvas) {
+            // 🔥 修復灰線問題：強制將圖片邊緣像素設為不透明 (Alpha = 255)
+            // 這是為了防止縮放時產生的半透明邊緣造成 "灰線" 視覺效果
+            try {
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+
+                // 獲取圖片數據
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const data = imageData.data;
+
+                // 輔助函數：設置像素為不透明
+                const setOpaque = (index) => {
+                    // 強制設為不透明
+                    data[index + 3] = 255;
+                };
+
+                // 處理上下邊緣
+                for (let x = 0; x < width; x++) {
+                    setOpaque(x * 4);
+                    setOpaque(((height - 1) * width + x) * 4);
+                }
+
+                // 處理左右邊緣
+                for (let y = 0; y < height; y++) {
+                    setOpaque(y * width * 4);
+                    setOpaque((y * width + (width - 1)) * 4);
+                }
+
+                // 將修改後的數據放回
+                ctx.putImageData(imageData, 0, 0);
+            } catch (e) {
+                console.warn('無法處理邊緣透明度，可能是跨域圖片限制', e);
+            }
+
             const borderedCanvas = document.createElement('canvas');
             borderedCanvas.width = canvas.width + 2; // 左右各1px
             borderedCanvas.height = canvas.height + 2; // 上下各1px
-            const ctx = borderedCanvas.getContext('2d');
+            const borderedCtx = borderedCanvas.getContext('2d');
 
             // 填滿黑色背景
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0, 0, borderedCanvas.width, borderedCanvas.height);
+            borderedCtx.fillStyle = 'black';
+            borderedCtx.fillRect(0, 0, borderedCanvas.width, borderedCanvas.height);
 
             // 繪製原始圖片在中間
-            ctx.drawImage(canvas, 1, 1);
+            borderedCtx.drawImage(canvas, 1, 1);
 
             return borderedCanvas;
         }
@@ -1763,6 +1799,10 @@
          * 安全的高級圖像縮放函數 - 不使用有問題的銳化濾鏡
          */
         function safeAdvancedImageScale(sourceCanvas, targetWidth, targetHeight, quality = 'balanced') {
+            // 🔥強制轉為整數，避免次像素渲染導致的灰線問題
+            targetWidth = Math.round(targetWidth);
+            targetHeight = Math.round(targetHeight);
+
             const sourceWidth = sourceCanvas.width;
             const sourceHeight = sourceCanvas.height;
             const scaleX = targetWidth / sourceWidth;
@@ -2652,7 +2692,34 @@
         }
 
         // 添加黑框函數
+        // 添加黑框函數
         function addBlackBorder(canvas) {
+            // 🔥 修復灰線問題：強制將圖片邊緣像素設為不透明 (Alpha = 255)
+            try {
+                const ctx = canvas.getContext('2d');
+                const width = canvas.width;
+                const height = canvas.height;
+
+                // 獲取圖片數據
+                const imageData = ctx.getImageData(0, 0, width, height);
+                const data = imageData.data;
+                const setOpaque = (index) => { data[index + 3] = 255; };
+
+                // 處理上下邊緣
+                for (let x = 0; x < width; x++) {
+                    setOpaque(x * 4);
+                    setOpaque(((height - 1) * width + x) * 4);
+                }
+                // 處理左右邊緣
+                for (let y = 0; y < height; y++) {
+                    setOpaque(y * width * 4);
+                    setOpaque((y * width + (width - 1)) * 4);
+                }
+                ctx.putImageData(imageData, 0, 0);
+            } catch (e) {
+                console.warn('無法處理邊緣透明度', e);
+            }
+
             const borderedCanvas = document.createElement('canvas');
             const borderedCtx = borderedCanvas.getContext('2d');
 
@@ -2691,11 +2758,11 @@
                             } else if (img.width < img.height) {
                                 // 直版圖片，寬度是短邊
                                 newWidth = 320;
-                                newHeight = (img.height / img.width) * 320;
+                                newHeight = Math.round((img.height / img.width) * 320);
                             } else {
                                 // 橫版圖片，高度是短邊
                                 newHeight = 320;
-                                newWidth = (img.width / img.height) * 320;
+                                newWidth = Math.round((img.width / img.height) * 320);
                             }
 
                             // 🔥 使用安全的高級縮放算法
@@ -2722,10 +2789,10 @@
                                 newHeight = img.height;
                             } else if (img.width > img.height) {
                                 newWidth = 1000;
-                                newHeight = (img.height / img.width) * 1000;
+                                newHeight = Math.round((img.height / img.width) * 1000);
                             } else {
                                 newHeight = 1000;
-                                newWidth = (img.width / img.height) * 1000;
+                                newWidth = Math.round((img.width / img.height) * 1000);
                             }
 
                             // 🔥 使用安全的高級縮放算法
@@ -2790,10 +2857,10 @@
                                 newHeight = img.height;
                             } else if (img.width > img.height) {
                                 newWidth = 1000;
-                                newHeight = (img.height / img.width) * 1000;
+                                newHeight = Math.round((img.height / img.width) * 1000);
                             } else {
                                 newHeight = 1000;
-                                newWidth = (img.width / img.height) * 1000;
+                                newWidth = Math.round((img.width / img.height) * 1000);
                             }
 
                             // 🔥 使用安全的高級縮放算法
@@ -3114,7 +3181,8 @@
 
             // 只有在非裁切模式下，或者裁切模式下寬度異常大時才執行此處的縮放
             // 但根據新需求，裁切模式下寬度已經是 1000px，所以這裡應該跳過
-            if (currentMode !== 'cropImage' && longSide > 1000) {
+            // 🔥 修正：將限制改為 1002，防止含邊框(1000+2)的圖片被再次縮放導致邊框模糊
+            if (currentMode !== 'cropImage' && longSide > 1002) {
                 console.log(`🔽 下載前縮放: 原始尺寸 ${finalCanvas.width}x${finalCanvas.height} -> 長邊限制 1000px`);
                 let newWidth, newHeight;
                 if (finalCanvas.width > finalCanvas.height) {
@@ -3746,12 +3814,12 @@
 
                 // 使用處理後的圖片進行後續縮放計算
                 const aspectRatio = processedImg.width / processedImg.height;
-                let newWidth = Math.min(ARRANGE_MAX_WIDTH / images.length - SPACING, processedImg.width);
-                let newHeight = newWidth / aspectRatio;
+                let newWidth = Math.round(Math.min(ARRANGE_MAX_WIDTH / images.length - SPACING, processedImg.width));
+                let newHeight = Math.round(newWidth / aspectRatio);
 
                 if (newHeight > ARRANGE_MAX_HEIGHT) {
                     newHeight = ARRANGE_MAX_HEIGHT;
-                    newWidth = newHeight * aspectRatio;
+                    newWidth = Math.round(newHeight * aspectRatio);
                 }
 
                 // 🔥 創建縮放後的canvas，使用安全的高級縮放算法
