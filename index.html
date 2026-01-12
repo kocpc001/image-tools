@@ -3666,7 +3666,7 @@
             div.draggable = true;
             div.dataset.uid = img._uid; // Store unique ID in DOM
             div.innerHTML = `
-                <img src="${img.src}" alt="Image ${index + 1}">
+                <img src="${img.src}" alt="Image ${index + 1}" draggable="false">
                 <button class="delete-button">刪除</button>
             `;
 
@@ -3787,30 +3787,8 @@
                 // 新增：檢查並調整圖片高度
                 let processedImg = img;
 
-                // 如果原始圖片高度超過900px，先調整為690px
-                if (img.height > 900) {
-                    // 🔥 使用安全的高級縮放算法
-                    const sourceCanvas = document.createElement('canvas');
-                    sourceCanvas.width = img.width;
-                    sourceCanvas.height = img.height;
-                    const sourceCtx = sourceCanvas.getContext('2d');
-                    setupHighQualityCanvas(sourceCtx);
-                    sourceCtx.drawImage(img, 0, 0);
-
-                    // 計算按690px高度縮放後的新尺寸（保持比例）
-                    const heightRatio = 690 / img.height;
-                    const newImgWidth = img.width * heightRatio;
-                    const newImgHeight = 690;
-
-                    const heightCanvas = safeAdvancedImageScale(sourceCanvas, newImgWidth, newImgHeight, quality);
-
-                    // 創建新的Image對象用於後續處理
-                    processedImg = {
-                        width: newImgWidth,
-                        height: newImgHeight,
-                        canvas: heightCanvas
-                    };
-                }
+                // 如果原始圖片高度超過900px，先調整為690px -> 🔥 移除此限制以保留畫質
+                // if (img.height > 900) { ... }
 
                 // 使用處理後的圖片進行後續縮放計算
                 const aspectRatio = processedImg.width / processedImg.height;
@@ -4194,6 +4172,7 @@
                 const imgElement = document.createElement('img');
                 imgElement.src = img.src;
                 imgElement.alt = `圖片 ${index + 1}`;
+                imgElement.draggable = false; // 🔥 防止圖片原生拖拽干擾
 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'delete-button';
@@ -4223,8 +4202,8 @@
 
         // 無邊框版本的拖拽處理函數
         function borderlessHandleDragStart(e) {
-            e.target.classList.add('dragging');
-            e.dataTransfer.setData('text/plain', e.target.dataset.index);
+            this.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', this.dataset.index);
         }
 
         function borderlessHandleDragOver(e) {
@@ -4289,30 +4268,8 @@
                 // 新增：檢查並調整圖片高度
                 let processedImg = img;
 
-                // 如果原始圖片高度超過900px，先調整為690px
-                if (img.height > 900) {
-                    // 🔥 使用安全的高級縮放算法
-                    const sourceCanvas = document.createElement('canvas');
-                    sourceCanvas.width = img.width;
-                    sourceCanvas.height = img.height;
-                    const sourceCtx = sourceCanvas.getContext('2d');
-                    setupHighQualityCanvas(sourceCtx);
-                    sourceCtx.drawImage(img, 0, 0);
-
-                    // 計算按690px高度縮放後的新尺寸（保持比例）
-                    const heightRatio = 690 / img.height;
-                    const newImgWidth = img.width * heightRatio;
-                    const newImgHeight = 690;
-
-                    const heightCanvas = safeAdvancedImageScale(sourceCanvas, newImgWidth, newImgHeight, quality);
-
-                    // 🔧 修復：與邊框版本一致，創建對象而不是新Image
-                    processedImg = {
-                        width: newImgWidth,
-                        height: newImgHeight,
-                        canvas: heightCanvas
-                    };
-                }
+                // 如果原始圖片高度超過900px，先調整為690px -> 🔥 移除此限制以保留畫質
+                // if (img.height > 900) { ... }
 
                 // 🔧 修復：使用與邊框版本相同的縮放邏輯
                 const aspectRatio = processedImg.width / processedImg.height;
@@ -4367,6 +4324,15 @@
                 borderlessCtx.drawImage(imgCanvas, x, y);
                 x += width + SPACING;
             });
+
+            // 🔥 新增：在無邊框模式的最外層添加 1px 黑邊
+            const finalBorderedCanvas = addBlackBorder(borderlessCanvas);
+
+            // 更新 borderlessCanvas 的尺寸和內容以包含黑框
+            borderlessCanvas.width = finalBorderedCanvas.width;
+            borderlessCanvas.height = finalBorderedCanvas.height;
+            // 重新填入內容 (因為改變尺寸會清空畫布)
+            borderlessCtx.drawImage(finalBorderedCanvas, 0, 0);
 
             // 設置編輯canvas
             borderlessEditCanvas.width = borderlessCanvas.width;
