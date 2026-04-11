@@ -2105,10 +2105,23 @@
 
         // 裁切功能事件監聽器
 
-        cropSelectionCanvas.addEventListener('mousedown', startCropDrawing);
-        cropSelectionCanvas.addEventListener('mousemove', drawCropSelection);
-        cropSelectionCanvas.addEventListener('mouseup', stopCropDrawing);
-        cropSelectionCanvas.addEventListener('mouseout', stopCropDrawing);
+        // 🔥 使用 Pointer Events + setPointerCapture
+        // 解決：圖片過大時拖曳到一半中斷（滑鼠離開 canvas 會失去事件）
+        // 好處：拖到 canvas 外也能繼續收 pointermove，座標會自動 clamp 到邊界
+        cropSelectionCanvas.addEventListener('pointerdown', (e) => {
+            cropSelectionCanvas.setPointerCapture(e.pointerId);
+            startCropDrawing(e);
+        });
+        cropSelectionCanvas.addEventListener('pointermove', drawCropSelection);
+        cropSelectionCanvas.addEventListener('pointerup', (e) => {
+            if (cropSelectionCanvas.hasPointerCapture(e.pointerId)) {
+                cropSelectionCanvas.releasePointerCapture(e.pointerId);
+            }
+            stopCropDrawing(e);
+        });
+        cropSelectionCanvas.addEventListener('pointercancel', stopCropDrawing);
+        // 防止觸控裝置上滾動手勢中斷拖曳
+        cropSelectionCanvas.style.touchAction = 'none';
         executeCropButton.addEventListener('click', executeCrop);
         cancelCropButton.addEventListener('click', cancelCrop);
 
@@ -2534,6 +2547,9 @@
                         sourceCanvas.height = img.height;
                         const sourceCtx = sourceCanvas.getContext('2d');
                         setupHighQualityCanvas(sourceCtx);
+                        // 透明底 PNG：先鋪白底，避免輸出 JPEG 後變黑
+                        sourceCtx.fillStyle = '#ffffff';
+                        sourceCtx.fillRect(0, 0, sourceCanvas.width, sourceCanvas.height);
                         sourceCtx.drawImage(img, 0, 0);
 
                         const quality = scalingQuality.value;
@@ -2600,6 +2616,9 @@
 
                         // 設置高品質縮放
                         setupHighQualityCanvas(ctx);
+                        // 透明底 PNG：先鋪白底
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
                         ctx.drawImage(img, 0, 0, img.width, img.height);
 
                         // Logo 尺寸縮小30%
@@ -2771,6 +2790,9 @@
                             sourceCanvas.height = img.height;
                             const sourceCtx = sourceCanvas.getContext('2d');
                             setupHighQualityCanvas(sourceCtx);
+                            // 透明底 PNG：先鋪白底
+                            sourceCtx.fillStyle = '#ffffff';
+                            sourceCtx.fillRect(0, 0, sourceCanvas.width, sourceCanvas.height);
                             sourceCtx.drawImage(img, 0, 0);
 
                             const scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
@@ -2801,6 +2823,9 @@
                             sourceCanvas.height = img.height;
                             const sourceCtx = sourceCanvas.getContext('2d');
                             setupHighQualityCanvas(sourceCtx);
+                            // 透明底 PNG：先鋪白底
+                            sourceCtx.fillStyle = '#ffffff';
+                            sourceCtx.fillRect(0, 0, sourceCanvas.width, sourceCanvas.height);
                             sourceCtx.drawImage(img, 0, 0);
 
                             const scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
@@ -2834,6 +2859,9 @@
                                     setupBalancedQualityCanvas(ctx);
                             }
 
+                            // 透明底 PNG：先鋪白底
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
                             ctx.drawImage(img, 0, 0);
 
                             // 添加浮水印（縮小30%）
@@ -2869,6 +2897,9 @@
                             sourceCanvas.height = img.height;
                             const sourceCtx = sourceCanvas.getContext('2d');
                             setupHighQualityCanvas(sourceCtx);
+                            // 透明底 PNG：先鋪白底
+                            sourceCtx.fillStyle = '#ffffff';
+                            sourceCtx.fillRect(0, 0, sourceCanvas.width, sourceCanvas.height);
                             sourceCtx.drawImage(img, 0, 0);
 
                             const scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
@@ -3373,6 +3404,9 @@
 
                         cropCanvas.width = displayWidth;
                         cropCanvas.height = displayHeight;
+                        // 透明底 PNG：先鋪白底（讓裁切預覽不會是黑底）
+                        cropCtx.fillStyle = '#ffffff';
+                        cropCtx.fillRect(0, 0, displayWidth, displayHeight);
                         cropCtx.drawImage(originalCropImage, 0, 0, displayWidth, displayHeight);
 
                         cropSelectionCanvas.width = displayWidth;
@@ -3395,18 +3429,36 @@
             }
         }
 
+        // 🔥 用 clientX/Y + getBoundingClientRect 算座標，再 clamp 到 canvas 邊界
+        //    這樣滑鼠拖到 canvas 外，座標會停在邊界上（不會斷）
+        //    並且能正確處理 CSS 縮放（display size ≠ intrinsic size）
+        function getCropCanvasCoords(e) {
+            const rect = cropSelectionCanvas.getBoundingClientRect();
+            const scaleX = cropSelectionCanvas.width / rect.width;
+            const scaleY = cropSelectionCanvas.height / rect.height;
+            let x = (e.clientX - rect.left) * scaleX;
+            let y = (e.clientY - rect.top) * scaleY;
+            // Clamp to canvas bounds
+            x = Math.max(0, Math.min(cropSelectionCanvas.width, x));
+            y = Math.max(0, Math.min(cropSelectionCanvas.height, y));
+            return { x, y };
+        }
+
         function startCropDrawing(e) {
             console.log('startCropDrawing triggered');
             isCropping = true;
-            [cropStartX, cropStartY] = [e.offsetX, e.offsetY];
+            const p = getCropCanvasCoords(e);
+            cropStartX = p.x;
+            cropStartY = p.y;
             cropEndX = cropStartX;
             cropEndY = cropStartY;
         }
 
         function drawCropSelection(e) {
             if (!isCropping) return;
-            cropEndX = e.offsetX;
-            cropEndY = e.offsetY;
+            const p = getCropCanvasCoords(e);
+            cropEndX = p.x;
+            cropEndY = p.y;
 
             cropSelectionCtx.clearRect(0, 0, cropSelectionCanvas.width, cropSelectionCanvas.height);
 
@@ -3489,6 +3541,10 @@
 
             // 使用高品質設定
             setupHighQualityCanvas(croppedCtx);
+
+            // 透明底 PNG：先鋪白底
+            croppedCtx.fillStyle = '#ffffff';
+            croppedCtx.fillRect(0, 0, sourceWidth, sourceHeight);
 
             croppedCtx.drawImage(
                 originalCropImage,
@@ -3779,64 +3835,68 @@
             const quality = scalingQuality.value;
             console.log(`📐 截圖並排: 品質設定 ${quality} `);
 
+            // === 第一步：把每張原始圖先畫到 sourceCanvas（順便鋪白底處理透明 PNG） ===
+            const sourceCanvases = images.map(img => {
+                const sc = document.createElement('canvas');
+                sc.width = img.width;
+                sc.height = img.height;
+                const sctx = sc.getContext('2d');
+                setupHighQualityCanvas(sctx);
+                // 透明底 PNG：先鋪白底
+                sctx.fillStyle = '#ffffff';
+                sctx.fillRect(0, 0, sc.width, sc.height);
+                sctx.drawImage(img, 0, 0);
+                return { canvas: sc, width: img.width, height: img.height };
+            });
+
+            // === 第二步：Fit-row 計算 — 所有圖片等高，排完後總寬度 = ARRANGE_MAX_WIDTH ===
+            //   - 每張圖加黑框後寬度 +2（addBlackBorder 左右各 1px）
+            //   - 圖片之間 SPACING 間距
+            //   可用內容寬度 = ARRANGE_MAX_WIDTH − 每張黑框 padding − 圖片間距總和
+            //   共同高度 = 可用寬度 / sum(aspect ratios)
+            const n = sourceCanvases.length;
+            const totalSpacing = (n - 1) * SPACING;
+            const totalBorderPad = n * 2; // 每張黑框佔 2px 寬
+            const availableWidth = ARRANGE_MAX_WIDTH - totalSpacing - totalBorderPad;
+            const sumAspects = sourceCanvases.reduce((s, sc) => s + sc.width / sc.height, 0);
+
+            let finalHeight = availableWidth / sumAspects;
+            // 高度上限（加上黑框不可超過 ARRANGE_MAX_HEIGHT）
+            if (finalHeight > ARRANGE_MAX_HEIGHT - 2) {
+                finalHeight = ARRANGE_MAX_HEIGHT - 2;
+            }
+            if (finalHeight < 1) finalHeight = 1;
+            // 🔥 用 Math.floor 避免 rounding overshoot
+            //    如果用 Math.round，三張圖的 half-round-up 會讓總寬多 1-2px
+            //    然後 Math.min 會裁掉最右側的黑框
+            finalHeight = Math.floor(finalHeight);
+            console.log(`📐 等高計算: ${n} 張圖、共同高度 ${finalHeight}px`);
+
+            // === 第三步：依共同高度把每張圖縮放並加黑框 ===
             let totalWidth = 0;
             let maxHeight = 0;
-
-            // 第一步：為每張圖片添加黑框並計算尺寸
-            const processedImages = images.map(img => {
-                // 新增：檢查並調整圖片高度
-                let processedImg = img;
-
-                // 如果原始圖片高度超過900px，先調整為690px -> 🔥 移除此限制以保留畫質
-                // if (img.height > 900) { ... }
-
-                // 使用處理後的圖片進行後續縮放計算
-                const aspectRatio = processedImg.width / processedImg.height;
-                let newWidth = Math.round(Math.min(ARRANGE_MAX_WIDTH / images.length - SPACING, processedImg.width));
-                let newHeight = Math.round(newWidth / aspectRatio);
-
-                if (newHeight > ARRANGE_MAX_HEIGHT) {
-                    newHeight = ARRANGE_MAX_HEIGHT;
-                    newWidth = Math.round(newHeight * aspectRatio);
-                }
-
-                // 🔥 創建縮放後的canvas，使用安全的高級縮放算法
-                let scaledCanvas;
-
-                if (processedImg.canvas) {
-                    // 如果已經調整過高度，使用調整後的canvas
-                    scaledCanvas = safeAdvancedImageScale(processedImg.canvas, newWidth, newHeight, quality);
-                } else {
-                    // 使用原始圖片
-                    const sourceCanvas = document.createElement('canvas');
-                    sourceCanvas.width = processedImg.width;
-                    sourceCanvas.height = processedImg.height;
-                    const sourceCtx = sourceCanvas.getContext('2d');
-                    setupHighQualityCanvas(sourceCtx);
-                    sourceCtx.drawImage(processedImg, 0, 0);
-
-                    scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
-                }
-
-                // 為縮放後的圖片添加黑框
+            const processedImages = sourceCanvases.map(sc => {
+                // 🔥 同樣用 floor 確保 sum(targetW) ≤ availableWidth
+                const targetW = Math.floor(finalHeight * (sc.width / sc.height));
+                const scaledCanvas = safeAdvancedImageScale(sc.canvas, targetW, finalHeight, quality);
                 const borderedCanvas = addBlackBorder(scaledCanvas);
-
                 totalWidth += borderedCanvas.width;
                 maxHeight = Math.max(maxHeight, borderedCanvas.height);
-
                 return { canvas: borderedCanvas, width: borderedCanvas.width, height: borderedCanvas.height };
             });
 
-            // 設置最終畫布尺寸
-            canvas.width = Math.min(ARRANGE_MAX_WIDTH, totalWidth + SPACING * (images.length - 1));
-            canvas.height = Math.min(ARRANGE_MAX_HEIGHT, maxHeight);
+            // === 第四步：設置最終畫布尺寸 ===
+            // 不再 Math.min cap — 因為用了 floor，保證不會 overshoot；
+            // 保持 cap 也安全，但多此一舉。為了可讀性保留但只當安全網。
+            canvas.width = Math.min(ARRANGE_MAX_WIDTH, totalWidth + SPACING * (n - 1));
+            canvas.height = maxHeight;
 
             // 填充白色背景
             let x = 0;
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // 第二步：將帶黑框的圖片並排
+            // === 第五步：將帶黑框的圖片並排 ===
             processedImages.forEach(({ canvas: imgCanvas, width, height }) => {
                 const y = (canvas.height - height) / 2;
                 ctx.drawImage(imgCanvas, x, y);
@@ -4260,72 +4320,63 @@
             const quality = scalingQuality.value;
             console.log(`📐 無邊框截圖並排: 品質設定 ${quality}`);
 
+            // === 第一步：把每張原始圖先畫到 sourceCanvas（鋪白底） ===
+            const sourceCanvases = images.map(img => {
+                const sc = document.createElement('canvas');
+                sc.width = img.width;
+                sc.height = img.height;
+                const sctx = sc.getContext('2d');
+                setupHighQualityCanvas(sctx);
+                sctx.fillStyle = '#ffffff';
+                sctx.fillRect(0, 0, sc.width, sc.height);
+                sctx.drawImage(img, 0, 0);
+                return { canvas: sc, width: img.width, height: img.height };
+            });
+
+            // === 第二步：Fit-row 計算 — 所有圖片等高，排完後總寬度 = MAX_WIDTH ===
+            //   無邊框內部沒有 per-image 黑框 padding，但最後整體會加 1px 黑邊（寬度 +2）
+            //   所以可用內容寬度 = MAX_WIDTH - 2 - 間距總和
+            const n = sourceCanvases.length;
+            const totalSpacing = (n - 1) * SPACING;
+            const outerBorderPad = 2; // 最外層黑邊 +2 寬
+            const availableWidth = MAX_WIDTH - totalSpacing - outerBorderPad;
+            const sumAspects = sourceCanvases.reduce((s, sc) => s + sc.width / sc.height, 0);
+
+            let finalHeight = availableWidth / sumAspects;
+            if (finalHeight > MAX_HEIGHT - 2) finalHeight = MAX_HEIGHT - 2;
+            if (finalHeight < 1) finalHeight = 1;
+            // 🔥 用 Math.floor 避免 rounding overshoot（同 arrangeImages 修復）
+            finalHeight = Math.floor(finalHeight);
+            console.log(`📐 等高計算: ${n} 張圖、共同高度 ${finalHeight}px`);
+
+            // === 第三步：依共同高度把每張圖縮放 ===
             let totalWidth = 0;
             let maxHeight = 0;
-
-            // 第一步：處理圖片但不添加黑框（與原版邏輯一致）
-            const processedImages = images.map(img => {
-                // 新增：檢查並調整圖片高度
-                let processedImg = img;
-
-                // 如果原始圖片高度超過900px，先調整為690px -> 🔥 移除此限制以保留畫質
-                // if (img.height > 900) { ... }
-
-                // 🔧 修復：使用與邊框版本相同的縮放邏輯
-                const aspectRatio = processedImg.width / processedImg.height;
-                let newWidth = Math.min(MAX_WIDTH / images.length - SPACING, processedImg.width);
-                let newHeight = newWidth / aspectRatio;
-
-                if (newHeight > MAX_HEIGHT) {
-                    newHeight = MAX_HEIGHT;
-                    newWidth = newHeight * aspectRatio;
-                }
-
-                // 🔥 創建縮放後的canvas，使用安全的高級縮放算法
-                let scaledCanvas;
-
-                if (processedImg.canvas) {
-                    // 如果已經調整過高度，使用調整後的canvas
-                    scaledCanvas = safeAdvancedImageScale(processedImg.canvas, newWidth, newHeight, quality);
-                } else {
-                    // 使用原始圖片
-                    const sourceCanvas = document.createElement('canvas');
-                    sourceCanvas.width = processedImg.width;
-                    sourceCanvas.height = processedImg.height;
-                    const sourceCtx = sourceCanvas.getContext('2d');
-                    setupHighQualityCanvas(sourceCtx);
-                    sourceCtx.drawImage(processedImg, 0, 0);
-
-                    scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
-                }
-
-                // ✨ 關鍵差異：無邊框版本不添加黑框
-                // 原版會調用: const borderedCanvas = addBlackBorder(scaledCanvas);
-                // 無邊框版本直接使用 scaledCanvas
-
+            const processedImages = sourceCanvases.map(sc => {
+                const targetW = Math.floor(finalHeight * (sc.width / sc.height));
+                const scaledCanvas = safeAdvancedImageScale(sc.canvas, targetW, finalHeight, quality);
                 totalWidth += scaledCanvas.width;
                 maxHeight = Math.max(maxHeight, scaledCanvas.height);
-
                 return { canvas: scaledCanvas, width: scaledCanvas.width, height: scaledCanvas.height };
             });
 
-            // 設置最終畫布尺寸
-            borderlessCanvas.width = Math.min(MAX_WIDTH, totalWidth + SPACING * (images.length - 1));
-            borderlessCanvas.height = Math.min(MAX_HEIGHT, maxHeight);
+            // === 第四步：設置最終畫布尺寸（預留 +2 給最外層黑邊） ===
+            borderlessCanvas.width = Math.min(MAX_WIDTH - 2, totalWidth + SPACING * (n - 1));
+            borderlessCanvas.height = maxHeight;
 
             // 填充白色背景
             let x = 0;
             borderlessCtx.fillStyle = 'white';
             borderlessCtx.fillRect(0, 0, borderlessCanvas.width, borderlessCanvas.height);
 
-            // 第二步：將圖片並排
+            // === 第五步：將圖片並排 ===
             processedImages.forEach(({ canvas: imgCanvas, width, height }) => {
                 const y = (borderlessCanvas.height - height) / 2;
                 borderlessCtx.drawImage(imgCanvas, x, y);
                 x += width + SPACING;
             });
 
-            // 🔥 新增：在無邊框模式的最外層添加 1px 黑邊
+            // 🔥 在無邊框模式的最外層添加 1px 黑邊
             const finalBorderedCanvas = addBlackBorder(borderlessCanvas);
 
             // 更新 borderlessCanvas 的尺寸和內容以包含黑框
