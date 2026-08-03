@@ -492,6 +492,11 @@
             cursor: pointer;
             color: #e53e3e;
             font-weight: bold;
+            border: 0;
+            background: transparent;
+            padding: 0;
+            font: inherit;
+            line-height: 1;
         }
 
         /* Magic Remover (v2) styles */
@@ -511,23 +516,6 @@
             gap: 20px;
         }
 
-        .mr-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 15px;
-        }
-
-        .mr-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #2d3748;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
         .mr-controls {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -537,22 +525,10 @@
             border-radius: 8px;
         }
 
-        .mr-control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
         .mr-label {
             font-size: 0.9rem;
             font-weight: 600;
             color: #4a5568;
-        }
-
-        .mr-toolbar {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
         }
 
         .mr-canvas-container {
@@ -957,16 +933,6 @@
             /* Ensure normal text wrapping behavior in input */
         }
 
-        /* Ensure the input wrapper/card handles flex correctly */
-        .wt-input-wrapper {
-            position: relative;
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
         @media (max-width: 1024px) {
             .wt-container {
                 grid-template-columns: 1fr;
@@ -984,6 +950,25 @@
             #wordTableToHtmlArea {
                 height: auto;
             }
+        }
+
+        /* 裁切時保持畫面可操作，並避免瀏覽器把拖曳誤判成捲動手勢 */
+        #cropCanvasContainer {
+            max-width: calc(100vw - 32px);
+            overflow: visible;
+        }
+
+        #cropCanvas,
+        #cropSelectionCanvas {
+            width: auto;
+            height: auto;
+            max-width: calc(100vw - 48px);
+            max-height: 60vh;
+        }
+
+        #cropSelectionCanvas {
+            touch-action: none;
+            user-select: none;
         }
     </style>
 
@@ -1012,7 +997,7 @@
     <div class="mode-buttons">
         <button id="cropImageMode" class="mode-button active">圖片裁切</button>
         <button id="resize320Mode" class="mode-button">修改圖片短邊（320px）</button>
-        <button id="resize1080Mode" class="mode-button">修改圖片長邊（1000px）</button>
+        <button id="resize1280Mode" class="mode-button">修改圖片長邊（1280px）</button>
         <button id="addWatermarkMode" class="mode-button">添加浮水印</button>
         <button id="adaSpecialMode" class="mode-button">電腦王阿達專用</button>
         <button id="screenshotArrangeMode" class="mode-button">截圖並排</button>
@@ -1023,7 +1008,7 @@
         <button id="wordTableMode" class="mode-button">Word表格轉HTML</button>
     </div>
     <div id="dropZone">
-        <p>拖曳圖片到這裡或點擊選擇檔案</p>
+        <p>拖曳圖片到這裡、點擊選擇檔案，或按 Ctrl+V 貼上圖片</p>
     </div>
     <input type="file" id="fileInput" multiple accept="image/*">
     <div id="status"></div>
@@ -1054,7 +1039,7 @@
             <button id="clearPreviewButton"
                 style="padding: 10px 15px; background-color: #6c757d; color: white; border: none; cursor: pointer; margin-right: 10px;">清除預覽</button>
             <button id="downloadPNGButton"
-                style="padding: 10px 15px; background-color: #28a745; color: white; border: none; cursor: pointer; display: none;">下載PNG高畫質</button>
+                style="padding: 10px 15px; background-color: #28a745; color: white; border: none; cursor: pointer; display: none;">下載最高畫質 JPG</button>
         </div>
     </div>
     <div>
@@ -1517,6 +1502,7 @@
                     <div id="cleanerTagList" style="display: flex; flex-wrap: wrap; gap: 5px;">
                         <!-- 標籤標籤 -->
                     </div>
+                    <p style="font-size: 11px; color: #64748b; margin: 12px 0 0;">自訂條件會自動保存在此瀏覽器。</p>
                 </div>
 
                 <!-- 編輯區 -->
@@ -1727,73 +1713,56 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
-    <script
-        src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.0/dist/browser-image-compression.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.min.js"></script>
     <script>
         // Define global constants for max crop dimensions
-        const MAX_CROP_WIDTH = 1000; // 限制裁切預覽寬度為1000px
+        const MAX_CROP_WIDTH = 1000; // 僅限制裁切預覽寬度，避免操作畫面過大
         const MAX_CROP_HEIGHT = 800; // Example value, adjust as needed
-        const MAX_WIDTH = 1000; // Define MAX_WIDTH
-        const MAX_HEIGHT = 1000; // Define MAX_HEIGHT
+        const OUTPUT_LONG_SIDE = 1280; // 大圖輸出的長邊上限
+        const MAX_WIDTH = OUTPUT_LONG_SIDE;
+        const MAX_HEIGHT = OUTPUT_LONG_SIDE;
         const MAX_IMAGES = 20; // Define MAX_IMAGES
 
-        // ============ 安全的高級圖像縮放算法 (修復線條問題) ============
-
-        // 添加黑框函數 (Global Scope)
-        // 添加黑框函數 (Global Scope)
-        function addBlackBorder(canvas) {
-            // 🔥 修復灰線問題：強制將圖片邊緣像素設為不透明 (Alpha = 255)
-            // 這是為了防止縮放時產生的半透明邊緣造成 "灰線" 視覺效果
-            try {
-                const ctx = canvas.getContext('2d');
-                const width = canvas.width;
-                const height = canvas.height;
-
-                // 獲取圖片數據
-                const imageData = ctx.getImageData(0, 0, width, height);
-                const data = imageData.data;
-
-                // 輔助函數：設置像素為不透明
-                const setOpaque = (index) => {
-                    // 強制設為不透明
-                    data[index + 3] = 255;
-                };
-
-                // 處理上下邊緣
-                for (let x = 0; x < width; x++) {
-                    setOpaque(x * 4);
-                    setOpaque(((height - 1) * width + x) * 4);
-                }
-
-                // 處理左右邊緣
-                for (let y = 0; y < height; y++) {
-                    setOpaque(y * width * 4);
-                    setOpaque((y * width + (width - 1)) * 4);
-                }
-
-                // 將修改後的數據放回
-                ctx.putImageData(imageData, 0, 0);
-            } catch (e) {
-                console.warn('無法處理邊緣透明度，可能是跨域圖片限制', e);
-            }
-
-            const borderedCanvas = document.createElement('canvas');
-            borderedCanvas.width = canvas.width + 2; // 左右各1px
-            borderedCanvas.height = canvas.height + 2; // 上下各1px
-            const borderedCtx = borderedCanvas.getContext('2d');
-
-            // 填滿黑色背景
-            borderedCtx.fillStyle = 'black';
-            borderedCtx.fillRect(0, 0, borderedCanvas.width, borderedCanvas.height);
-
-            // 繪製原始圖片在中間
-            borderedCtx.drawImage(canvas, 1, 1);
-
-            return borderedCanvas;
+        function formatDateTime(date = new Date()) {
+            const pad = (value) => String(value).padStart(2, '0');
+            return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
         }
+
+        function createImageFilename(date = new Date(), sequence = '') {
+            const suffix = sequence === '' ? '' : `_${String(sequence).padStart(3, '0')}`;
+            return `${formatDateTime(date)}${suffix}.jpg`;
+        }
+
+        function loadImageFile(file) {
+            return new Promise((resolve, reject) => {
+                const image = new Image();
+                const objectUrl = URL.createObjectURL(file);
+                const cleanup = () => URL.revokeObjectURL(objectUrl);
+                image.onload = () => {
+                    cleanup();
+                    resolve(image);
+                };
+                image.onerror = () => {
+                    cleanup();
+                    reject(new Error('圖片載入失敗'));
+                };
+                image.src = objectUrl;
+            });
+        }
+
+        function createThumbnailDataUrl(image, maxSide = 180) {
+            const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(image.width * scale));
+            canvas.height = Math.max(1, Math.round(image.height * scale));
+            const context = canvas.getContext('2d');
+            context.fillStyle = '#ffffff';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL('image/jpeg', 0.72);
+        }
+
+        // ============ 安全的高級圖像縮放算法 (修復線條問題) ============
 
         /**
          * 安全的高級圖像縮放函數 - 不使用有問題的銳化濾鏡
@@ -1868,6 +1837,8 @@
                 const stepCtx = stepCanvas.getContext('2d');
 
                 setupUltraQualityCanvas(stepCtx);
+                stepCtx.fillStyle = '#ffffff';
+                stepCtx.fillRect(0, 0, stepTargetWidth, stepTargetHeight);
                 stepCtx.drawImage(currentCanvas, 0, 0, stepTargetWidth, stepTargetHeight);
 
                 console.log(`步驟 ${i + 1}/${steps}: ${currentCanvas.width}x${currentCanvas.height} -> ${stepTargetWidth}x${stepTargetHeight}`);
@@ -1888,6 +1859,8 @@
 
             console.log(`高品質模式：${sourceCanvas.width}x${sourceCanvas.height} -> ${targetWidth}x${targetHeight}`);
             setupHighQualityCanvas(ctx);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
             ctx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
 
             return canvas;
@@ -1904,6 +1877,8 @@
 
             console.log(`平衡模式：${sourceCanvas.width}x${sourceCanvas.height} -> ${targetWidth}x${targetHeight}`);
             setupBalancedQualityCanvas(ctx);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
             ctx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
 
             return canvas;
@@ -1920,6 +1895,8 @@
 
             console.log(`快速模式：${sourceCanvas.width}x${sourceCanvas.height} -> ${targetWidth}x${targetHeight}`);
             setupFastQualityCanvas(ctx);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
             ctx.drawImage(sourceCanvas, 0, 0, targetWidth, targetHeight);
 
             return canvas;
@@ -1947,7 +1924,7 @@
         const fileInput = document.getElementById('fileInput');
         const status = document.getElementById('status');
         const resize320ModeBtn = document.getElementById('resize320Mode');
-        const resize1080ModeBtn = document.getElementById('resize1080Mode');
+        const resize1280ModeBtn = document.getElementById('resize1280Mode');
         const addWatermarkModeBtn = document.getElementById('addWatermarkMode');
         const adaSpecialModeBtn = document.getElementById('adaSpecialMode');
         const screenshotArrangeModeBtn = document.getElementById('screenshotArrangeMode');
@@ -1969,7 +1946,6 @@
         const chineseConvArea = document.getElementById('chineseConvArea');
         const magicRemoverArea = document.getElementById('magicRemoverArea');
         const wordTableToHtmlArea = document.getElementById('wordTableToHtmlArea');
-        // const cropFileInput = document.getElementById('cropFileInput'); // 移除，因為已統一使用 fileInput
         const cropCanvas = document.getElementById('cropCanvas');
         const cropCtx = cropCanvas.getContext('2d');
         const cropSelectionCanvas = document.getElementById('cropSelectionCanvas');
@@ -1979,6 +1955,15 @@
 
         // 品質選項元素
         const scalingQuality = document.getElementById('scalingQuality');
+
+        function getSelectedJpegQuality() {
+            return {
+                ultra: 0.99,
+                high: 0.95,
+                balanced: 0.90,
+                fast: 0.80
+            }[scalingQuality.value] || 0.90;
+        }
 
         // 預覽相關元素
         const previewArea = document.getElementById('previewArea');
@@ -2052,8 +2037,59 @@
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
         dropZone.addEventListener('drop', handleFiles);
         fileInput.addEventListener('change', handleFiles);
+
+        let lastClipboardPasteAt = 0;
+        let clipboardImportInProgress = false;
+
+        async function processClipboardImages(imageFiles) {
+            if (clipboardImportInProgress || imageFiles.length === 0) return;
+            clipboardImportInProgress = true;
+            try {
+                await processFiles(imageFiles);
+            } finally {
+                clipboardImportInProgress = false;
+            }
+        }
+
+        // 使用 capture 監聽，避免切換按鈕或品質選單取得焦點後漏掉貼上事件。
+        window.addEventListener('paste', (event) => {
+            const imageFiles = Array.from(event.clipboardData?.items || [])
+                .filter(item => item.kind === 'file' && item.type.startsWith('image/'))
+                .map(item => item.getAsFile())
+                .filter(Boolean);
+
+            if (imageFiles.length === 0) return;
+
+            lastClipboardPasteAt = Date.now();
+            event.preventDefault();
+            void processClipboardImages(imageFiles);
+        }, true);
+
+        // 部分瀏覽器在切換控制項後不會再次送出 paste；以 Clipboard API 作為 Ctrl+V 備援。
+        window.addEventListener('keydown', (event) => {
+            if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'v') return;
+            const keydownAt = Date.now();
+
+            setTimeout(async () => {
+                if (lastClipboardPasteAt >= keydownAt || !navigator.clipboard?.read) return;
+                try {
+                    const clipboardItems = await navigator.clipboard.read();
+                    const imageFiles = [];
+                    for (const item of clipboardItems) {
+                        const imageType = item.types.find(type => type.startsWith('image/'));
+                        if (!imageType) continue;
+                        const blob = await item.getType(imageType);
+                        const extension = imageType.split('/')[1] || 'png';
+                        imageFiles.push(new File([blob], `clipboard-${Date.now()}.${extension}`, { type: imageType }));
+                    }
+                    await processClipboardImages(imageFiles);
+                } catch (error) {
+                    console.debug('Clipboard API fallback unavailable:', error);
+                }
+            }, 120);
+        }, true);
         resize320ModeBtn.addEventListener('click', () => setMode('resize320'));
-        resize1080ModeBtn.addEventListener('click', () => setMode('resize1080'));
+        resize1280ModeBtn.addEventListener('click', () => setMode('resize1280'));
         addWatermarkModeBtn.addEventListener('click', () => setMode('addWatermark'));
         adaSpecialModeBtn.addEventListener('click', () => setMode('adaSpecial'));
         screenshotArrangeModeBtn.addEventListener('click', () => setMode('screenshotArrange'));
@@ -2073,6 +2109,7 @@
             previewArea.style.display = 'none';
             status.innerHTML = '';
             fileInput.value = '';
+            dropZone.style.display = 'flex';
         });
         clearPreviewButton.addEventListener('click', () => {
             previewArea.style.display = 'none';
@@ -2212,7 +2249,7 @@
                     borderlessUpdateFileInputAndCount();
                     return; // 重置後停留在該介面
                 }
-                if (['resize320', 'resize1080', 'addWatermark', 'adaSpecial'].includes(mode)) {
+                if (['resize320', 'resize1280', 'addWatermark', 'adaSpecial'].includes(mode)) {
                     previewArea.style.display = 'none';
                     status.innerHTML = '';
                     fileInput.value = '';
@@ -2230,7 +2267,7 @@
             }
 
             currentMode = mode;
-            [resize320ModeBtn, resize1080ModeBtn, addWatermarkModeBtn, adaSpecialModeBtn, screenshotArrangeModeBtn, cropImageModeBtn, borderlessScreenshotArrangeModeBtn, chineseConvModeBtn, htmlCleanerModeBtn, magicRemoverModeBtn, wordTableModeBtn].forEach(btn => btn.classList.remove('active'));
+            [resize320ModeBtn, resize1280ModeBtn, addWatermarkModeBtn, adaSpecialModeBtn, screenshotArrangeModeBtn, cropImageModeBtn, borderlessScreenshotArrangeModeBtn, chineseConvModeBtn, htmlCleanerModeBtn, magicRemoverModeBtn, wordTableModeBtn].forEach(btn => btn.classList.remove('active'));
 
             selectLogoBtn.style.display = 'none';
             selectAdaLogoBtn.style.display = 'none';
@@ -2263,9 +2300,9 @@
             if (mode === 'resize320') {
                 resize320ModeBtn.classList.add('active');
                 pageTitle.textContent = '修改圖片短邊（320px）';
-            } else if (mode === 'resize1080') {
-                resize1080ModeBtn.classList.add('active');
-                pageTitle.textContent = '修改圖片長邊（1000px）';
+            } else if (mode === 'resize1280') {
+                resize1280ModeBtn.classList.add('active');
+                pageTitle.textContent = '修改圖片長邊（1280px）';
             } else if (mode === 'addWatermark') {
                 addWatermarkModeBtn.classList.add('active');
                 pageTitle.textContent = '添加浮水印';
@@ -2381,24 +2418,26 @@
                 // 2. Remove Watermark
                 await mrEngine.removeWatermark(upscaledCanvas);
 
-                // 3. Resize to 1000px (Longest side)
-                console.log('--- One-Click: Step 2: Resize to 1000px ---');
+                // 3. Resize to 1280px (Longest side)
+                console.log('--- One-Click: Step 2: Resize to 1280px ---');
                 let targetW = upscaledCanvas.width;
                 let targetH = upscaledCanvas.height;
                 const longSide = Math.max(targetW, targetH);
 
-                if (longSide > 1000) {
+                if (longSide > OUTPUT_LONG_SIDE) {
                     if (targetW > targetH) {
-                        targetW = 1000;
-                        targetH = (upscaledCanvas.height / upscaledCanvas.width) * 1000;
+                        targetW = OUTPUT_LONG_SIDE;
+                        targetH = (upscaledCanvas.height / upscaledCanvas.width) * OUTPUT_LONG_SIDE;
                     } else {
-                        targetH = 1000;
-                        targetW = (upscaledCanvas.width / upscaledCanvas.height) * 1000;
+                        targetH = OUTPUT_LONG_SIDE;
+                        targetW = (upscaledCanvas.width / upscaledCanvas.height) * OUTPUT_LONG_SIDE;
                     }
                 }
 
-                // Use high quality scaling
-                const resizedCanvas = safeAdvancedImageScale(upscaledCanvas, targetW, targetH, 'high');
+                // 使用頂端選擇的縮放品質
+                const quality = scalingQuality.value;
+                const jpegQuality = getSelectedJpegQuality();
+                const resizedCanvas = safeAdvancedImageScale(upscaledCanvas, targetW, targetH, quality);
 
                 // 4. Add Black Border
                 console.log('--- One-Click: Step 3: Add Border ---');
@@ -2425,29 +2464,24 @@
                 console.log('--- One-Click: Step 5: Download & Preview ---');
 
                 // Update Preview with the final result
-                const previewImg = new Image();
-                previewImg.onload = () => {
-                    mrOriginalImage = previewImg;
-                    mrHistory = []; // Reset history
-                    mrHistoryIndex = -1;
-                    if (mrMaskCanvas) {
-                        const mCtx = mrMaskCanvas.getContext('2d');
-                        mCtx.clearRect(0, 0, mrMaskCanvas.width, mrMaskCanvas.height);
-                    }
-                    mrRefreshCanvas(); // Update UI
-                };
-                previewImg.src = finalCanvas.toDataURL('image/jpeg', 0.85);
+                mrOriginalImage = finalCanvas;
+                mrHistory = [];
+                mrHistoryIndex = -1;
+                if (mrMaskCanvas) {
+                    const mCtx = mrMaskCanvas.getContext('2d');
+                    mCtx.clearRect(0, 0, mrMaskCanvas.width, mrMaskCanvas.height);
+                }
+                mrRefreshCanvas();
 
                 finalCanvas.toBlob((blob) => {
                     if (blob) {
-                        const timestamp = new Date().getTime();
-                        const filename = `processed_${timestamp}.jpg`;
+                        const filename = createImageFilename();
                         const file = new File([blob], filename, { type: "image/jpeg" });
                         saveAs(file);
                     } else {
                         throw new Error('Canvas conversions failed');
                     }
-                }, 'image/jpeg', 0.85);
+                }, 'image/jpeg', jpegQuality);
 
             } catch (err) {
                 console.error('One-Click Process Error:', err);
@@ -2478,8 +2512,8 @@
                     let result = null;
                     if (currentMode === 'resize320') {
                         result = await processImageForPreview(file, 'resize320');
-                    } else if (currentMode === 'resize1080') {
-                        result = await processImageForPreview(file, 'resize1080');
+                    } else if (currentMode === 'resize1280') {
+                        result = await processImageForPreview(file, 'resize1280');
                     } else if (currentMode === 'addWatermark') {
                         if (logoImage) {
                             result = await processImageForPreview(file, 'addWatermark');
@@ -2507,175 +2541,13 @@
                     }
 
                     if (result && result.canvas) {
-                        const filename = file.name.replace(/\.[^/.]+$/, ".jpg");
-                        showPreview(result.canvas, filename);
+                        showPreview(result.canvas, createImageFilename());
                         status.innerHTML += '<br>處理完成！請查看預覽結果。';
                     }
                 } catch (error) {
                     console.error('處理錯誤:', error);
                     status.innerHTML += '<br>處理失敗: ' + error.message;
                 }
-            }
-        }
-
-        async function resizeImage(file, targetSize, returnBlob = false) {
-            return new Promise((resolve, reject) => {
-                try {
-                    status.innerHTML += `<br>正在處理: ${file.name}`;
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        let newWidth, newHeight;
-
-                        const longSide = Math.max(img.width, img.height);
-
-                        if (longSide <= targetSize) {
-                            newWidth = img.width;
-                            newHeight = img.height;
-                        } else if (img.width > img.height) {
-                            newWidth = targetSize;
-                            newHeight = (img.height / img.width) * targetSize;
-                        } else {
-                            newHeight = targetSize;
-                            newWidth = (img.width / img.height) * targetSize;
-                        }
-
-                        // 使用安全的高級縮放技術
-                        const sourceCanvas = document.createElement('canvas');
-                        sourceCanvas.width = img.width;
-                        sourceCanvas.height = img.height;
-                        const sourceCtx = sourceCanvas.getContext('2d');
-                        setupHighQualityCanvas(sourceCtx);
-                        // 透明底 PNG：先鋪白底，避免輸出 JPEG 後變黑
-                        sourceCtx.fillStyle = '#ffffff';
-                        sourceCtx.fillRect(0, 0, sourceCanvas.width, sourceCanvas.height);
-                        sourceCtx.drawImage(img, 0, 0);
-
-                        const quality = scalingQuality.value;
-                        const scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
-
-                        canvas.width = scaledCanvas.width;
-                        canvas.height = scaledCanvas.height;
-                        setupHighQualityCanvas(ctx);
-                        ctx.drawImage(scaledCanvas, 0, 0);
-
-                        // 根據品質選項決定JPEG品質
-                        let jpegQuality = 0.98; // 預設高品質
-                        switch (quality) {
-                            case 'ultra':
-                                jpegQuality = 0.99; // 最高品質
-                                break;
-                            case 'high':
-                                jpegQuality = 0.95; // 高品質
-                                break;
-                            case 'balanced':
-                                jpegQuality = 0.90; // 平衡品質
-                                break;
-                            case 'fast':
-                                jpegQuality = 0.80; // 快速模式較低品質
-                                break;
-                        }
-
-                        console.log(`使用JPEG品質: ${jpegQuality}`);
-
-                        canvas.toBlob((blob) => {
-                            if (blob) {
-                                const resizedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: "image/jpeg" });
-                                console.log(`輸出檔案大小: ${(blob.size / 1024 / 1024).toFixed(2)} MB`);
-                                if (returnBlob) {
-                                    resolve(resizedFile);
-                                } else {
-                                    saveAs(resizedFile);
-                                    status.innerHTML += ` - 調整大小成功！(品質: ${quality}, 檔案大小: ${(blob.size / 1024 / 1024).toFixed(2)} MB)`;
-                                    resolve();
-                                }
-                            } else {
-                                reject(new Error('無法創建調整大小後的 blob'));
-                            }
-                        }, 'image/jpeg', jpegQuality);
-                    };
-                    img.src = URL.createObjectURL(file);
-                } catch (error) {
-                    reject(error);
-                }
-            });
-        }
-
-        async function addWatermark(file, logo, returnBlob = false) {
-            return new Promise((resolve, reject) => {
-                try {
-                    status.innerHTML += `<br>正在處理: ${file.name}`;
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-
-                        // 設置高品質縮放
-                        setupHighQualityCanvas(ctx);
-                        // 透明底 PNG：先鋪白底
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        ctx.drawImage(img, 0, 0, img.width, img.height);
-
-                        // Logo 尺寸縮小30%
-                        const logoWidth = logo.width * 0.7;
-                        const logoHeight = logo.height * 0.7;
-
-                        // 計算 Logo 位置（右下角，距離邊緣 15 像素）
-                        const logoX = img.width - logoWidth - 15;
-                        const logoY = img.height - logoHeight - 15;
-
-                        ctx.globalAlpha = 0.5;
-                        ctx.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
-
-                        canvas.toBlob((blob) => {
-                            if (blob) {
-                                const watermarkedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), { type: "image/jpeg" });
-                                if (returnBlob) {
-                                    resolve(watermarkedFile);
-                                } else {
-                                    saveAs(watermarkedFile);
-                                    status.innerHTML += ` - 添加浮水印成功！`;
-                                    resolve();
-                                }
-                            } else {
-                                reject(new Error('無法創建添加浮水印後的 blob'));
-                            }
-                        }, 'image/jpeg', 0.98);
-                    };
-                    img.src = URL.createObjectURL(file);
-                } catch (error) {
-                    reject(error);
-                }
-            });
-        }
-
-        async function adaSpecialProcess(file) {
-            try {
-                console.log('開始阿達專用處理');
-                status.innerHTML += `<br>正在處理: ${file.name}`;
-
-                console.log('步驟 1: 調整圖片大小');
-                status.innerHTML += `<br>- 調整圖片大小中...`;
-                let processedImage = await resizeImage(file, 1000, true);
-
-                console.log('步驟 2: 添加浮水印');
-                status.innerHTML += `<br>- 添加浮水印中...`;
-                if (!adaSpecialLogo) {
-                    throw new Error('阿達專用 Logo 未設置');
-                }
-                processedImage = await addWatermark(processedImage, adaSpecialLogo, true);
-
-                console.log('儲存最終圖片');
-                saveAs(processedImage);
-                status.innerHTML += `<br>電腦王阿達專用處理完成！`;
-            } catch (error) {
-                console.error('阿達專用處理錯誤:', error);
-                status.innerHTML += `<br>處理失敗: ${error.message}`;
             }
         }
 
@@ -2711,34 +2583,7 @@
         }
 
         // 添加黑框函數
-        // 添加黑框函數
         function addBlackBorder(canvas) {
-            // 🔥 修復灰線問題：強制將圖片邊緣像素設為不透明 (Alpha = 255)
-            try {
-                const ctx = canvas.getContext('2d');
-                const width = canvas.width;
-                const height = canvas.height;
-
-                // 獲取圖片數據
-                const imageData = ctx.getImageData(0, 0, width, height);
-                const data = imageData.data;
-                const setOpaque = (index) => { data[index + 3] = 255; };
-
-                // 處理上下邊緣
-                for (let x = 0; x < width; x++) {
-                    setOpaque(x * 4);
-                    setOpaque(((height - 1) * width + x) * 4);
-                }
-                // 處理左右邊緣
-                for (let y = 0; y < height; y++) {
-                    setOpaque(y * width * 4);
-                    setOpaque((y * width + (width - 1)) * 4);
-                }
-                ctx.putImageData(imageData, 0, 0);
-            } catch (e) {
-                console.warn('無法處理邊緣透明度', e);
-            }
-
             const borderedCanvas = document.createElement('canvas');
             const borderedCtx = borderedCanvas.getContext('2d');
 
@@ -2758,10 +2603,8 @@
 
         // 處理圖片並返回canvas（預覽模式）
         async function processImageForPreview(file, mode) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => {
-                    try {
+            const img = await loadImageFile(file);
+            try {
                         // 🔥 獲取當前品質設定
                         const quality = scalingQuality.value;
                         console.log(`🎯 處理模式: ${mode}, 品質設定: ${quality}`);
@@ -2785,54 +2628,34 @@
                             }
 
                             // 🔥 使用安全的高級縮放算法
-                            const sourceCanvas = document.createElement('canvas');
-                            sourceCanvas.width = img.width;
-                            sourceCanvas.height = img.height;
-                            const sourceCtx = sourceCanvas.getContext('2d');
-                            setupHighQualityCanvas(sourceCtx);
-                            // 透明底 PNG：先鋪白底
-                            sourceCtx.fillStyle = '#ffffff';
-                            sourceCtx.fillRect(0, 0, sourceCanvas.width, sourceCanvas.height);
-                            sourceCtx.drawImage(img, 0, 0);
-
-                            const scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
+                            const scaledCanvas = safeAdvancedImageScale(img, newWidth, newHeight, quality);
 
                             // 添加黑框
                             const borderedCanvas = addBlackBorder(scaledCanvas);
-                            resolve({ canvas: borderedCanvas });
+                            return { canvas: borderedCanvas };
 
-                        } else if (mode === 'resize1080') {
-                            // 長邊縮放到1000px
+                        } else if (mode === 'resize1280') {
+                            // 長邊縮放到1280px
                             const longSide = Math.max(img.width, img.height);
                             let newWidth, newHeight;
 
-                            if (longSide <= 1000) {
+                            if (longSide <= OUTPUT_LONG_SIDE) {
                                 newWidth = img.width;
                                 newHeight = img.height;
                             } else if (img.width > img.height) {
-                                newWidth = 1000;
-                                newHeight = Math.round((img.height / img.width) * 1000);
+                                newWidth = OUTPUT_LONG_SIDE;
+                                newHeight = Math.round((img.height / img.width) * OUTPUT_LONG_SIDE);
                             } else {
-                                newHeight = 1000;
-                                newWidth = Math.round((img.width / img.height) * 1000);
+                                newHeight = OUTPUT_LONG_SIDE;
+                                newWidth = Math.round((img.width / img.height) * OUTPUT_LONG_SIDE);
                             }
 
                             // 🔥 使用安全的高級縮放算法
-                            const sourceCanvas = document.createElement('canvas');
-                            sourceCanvas.width = img.width;
-                            sourceCanvas.height = img.height;
-                            const sourceCtx = sourceCanvas.getContext('2d');
-                            setupHighQualityCanvas(sourceCtx);
-                            // 透明底 PNG：先鋪白底
-                            sourceCtx.fillStyle = '#ffffff';
-                            sourceCtx.fillRect(0, 0, sourceCanvas.width, sourceCanvas.height);
-                            sourceCtx.drawImage(img, 0, 0);
-
-                            const scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
+                            const scaledCanvas = safeAdvancedImageScale(img, newWidth, newHeight, quality);
 
                             // 添加黑框
                             const borderedCanvas = addBlackBorder(scaledCanvas);
-                            resolve({ canvas: borderedCanvas });
+                            return { canvas: borderedCanvas };
 
                         } else if (mode === 'addWatermark') {
                             // 添加浮水印 - 🔥 使用品質設定
@@ -2873,36 +2696,26 @@
                             ctx.globalAlpha = 0.5;
                             ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
 
-                            resolve({ canvas: canvas });
+                            return { canvas: canvas };
 
                         } else if (mode === 'adaSpecial') {
                             // 阿達專用：縮放 + 浮水印 + 黑框
                             const longSide = Math.max(img.width, img.height);
                             let newWidth, newHeight;
 
-                            if (longSide <= 1000) {
+                            if (longSide <= OUTPUT_LONG_SIDE) {
                                 newWidth = img.width;
                                 newHeight = img.height;
                             } else if (img.width > img.height) {
-                                newWidth = 1000;
-                                newHeight = Math.round((img.height / img.width) * 1000);
+                                newWidth = OUTPUT_LONG_SIDE;
+                                newHeight = Math.round((img.height / img.width) * OUTPUT_LONG_SIDE);
                             } else {
-                                newHeight = 1000;
-                                newWidth = Math.round((img.width / img.height) * 1000);
+                                newHeight = OUTPUT_LONG_SIDE;
+                                newWidth = Math.round((img.width / img.height) * OUTPUT_LONG_SIDE);
                             }
 
                             // 🔥 使用安全的高級縮放算法
-                            const sourceCanvas = document.createElement('canvas');
-                            sourceCanvas.width = img.width;
-                            sourceCanvas.height = img.height;
-                            const sourceCtx = sourceCanvas.getContext('2d');
-                            setupHighQualityCanvas(sourceCtx);
-                            // 透明底 PNG：先鋪白底
-                            sourceCtx.fillStyle = '#ffffff';
-                            sourceCtx.fillRect(0, 0, sourceCanvas.width, sourceCanvas.height);
-                            sourceCtx.drawImage(img, 0, 0);
-
-                            const scaledCanvas = safeAdvancedImageScale(sourceCanvas, newWidth, newHeight, quality);
+                            const scaledCanvas = safeAdvancedImageScale(img, newWidth, newHeight, quality);
                             const canvas = document.createElement('canvas');
                             canvas.width = scaledCanvas.width;
                             canvas.height = scaledCanvas.height;
@@ -2921,27 +2734,16 @@
 
                             // 添加黑框
                             const borderedCanvas = addBlackBorder(canvas);
-                            resolve({ canvas: borderedCanvas });
+                            return { canvas: borderedCanvas };
                         }
 
-                    } catch (error) {
-                        reject(error);
-                    }
-                };
-                img.onerror = () => reject(new Error('圖片載入失敗'));
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const dataUrl = e.target.result;
-                    // Data URLs from same session are usually considered safe.
-                    // No crossOrigin needed for locally read files.
-                    img.src = dataUrl;
-                };
-                reader.readAsDataURL(file);
-            });
+            } catch (error) {
+                throw error;
+            }
         }
 
         // 顯示預覽結果
-        function showPreview(canvas, filename) {
+        function showPreview(canvas) {
             previewCanvas.width = canvas.width;
             previewCanvas.height = canvas.height;
             previewCtx.drawImage(canvas, 0, 0);
@@ -2952,10 +2754,8 @@
             previewEditCanvas.style.display = 'block';
 
             // 儲存下載信息
-            previewCanvas.downloadFilename = filename;
-
             // 初始化編輯歷史
-            previewClearEdits();
+            previewEditCtx.clearRect(0, 0, previewEditCanvas.width, previewEditCanvas.height);
             previewEditHistory = [previewEditCtx.getImageData(0, 0, previewEditCanvas.width, previewEditCanvas.height)];
 
             // 顯示下載按鈕和預覽區域
@@ -3167,7 +2967,7 @@
 
         // 下載預覽圖片
         function downloadPreviewImage() {
-            const filename = previewCanvas.downloadFilename || 'processed_image.jpg';
+            const filename = createImageFilename();
 
             // 🔥 獲取當前品質設定
             const quality = scalingQuality.value;
@@ -3202,7 +3002,7 @@
             // 繪製編輯內容
             finalCtx.drawImage(previewEditCanvas, 0, 0);
 
-            // 🔥 新增：檢查是否需要縮放至 1000px (針對裁切模式的高解析度圖片)
+            // 檢查是否需要縮放至 1280px（針對高解析度圖片）
             // 注意：如果已經是裁切模式且已經在 executeCrop 中縮放過寬度，這裡就不應該再強制縮放長邊
             // 除非使用者沒有經過裁切流程 (不太可能，因為 cropImage 模式下必須先裁切)
             // 但為了保險起見，我們可以檢查 currentMode
@@ -3211,17 +3011,16 @@
             const longSide = Math.max(finalCanvas.width, finalCanvas.height);
 
             // 只有在非裁切模式下，或者裁切模式下寬度異常大時才執行此處的縮放
-            // 但根據新需求，裁切模式下寬度已經是 1000px，所以這裡應該跳過
-            // 🔥 修正：將限制改為 1002，防止含邊框(1000+2)的圖片被再次縮放導致邊框模糊
-            if (currentMode !== 'cropImage' && longSide > 1002) {
-                console.log(`🔽 下載前縮放: 原始尺寸 ${finalCanvas.width}x${finalCanvas.height} -> 長邊限制 1000px`);
+            // 裁切模式已在 executeCrop 中處理；+2 是黑框尺寸，避免再次縮放使邊框模糊
+            if (currentMode !== 'cropImage' && longSide > OUTPUT_LONG_SIDE + 2) {
+                console.log(`🔽 下載前縮放: 原始尺寸 ${finalCanvas.width}x${finalCanvas.height} -> 長邊限制 ${OUTPUT_LONG_SIDE}px`);
                 let newWidth, newHeight;
                 if (finalCanvas.width > finalCanvas.height) {
-                    newWidth = 1000;
-                    newHeight = (finalCanvas.height / finalCanvas.width) * 1000;
+                    newWidth = OUTPUT_LONG_SIDE;
+                    newHeight = (finalCanvas.height / finalCanvas.width) * OUTPUT_LONG_SIDE;
                 } else {
-                    newHeight = 1000;
-                    newWidth = (finalCanvas.width / finalCanvas.height) * 1000;
+                    newHeight = OUTPUT_LONG_SIDE;
+                    newWidth = (finalCanvas.width / finalCanvas.height) * OUTPUT_LONG_SIDE;
                 }
 
                 // 使用安全的高級縮放
@@ -3256,9 +3055,9 @@
             }, 'image/jpeg', jpegQuality);
         }
 
-        // 下載PNG格式預覽圖片（最高畫質）
+        // 下載最高畫質 JPG
         function downloadPreviewImageAsPNG() {
-            const filename = previewCanvas.downloadFilename || 'processed_image.png';
+            const filename = createImageFilename();
 
             // 創建合成canvas
             const finalCanvas = document.createElement('canvas');
@@ -3276,10 +3075,10 @@
 
             finalCanvas.toBlob((blob) => {
                 if (blob) {
-                    const file = new File([blob], filename.replace(/\.[^/.]+$/, ".png"), { type: "image/png" });
+                    const file = new File([blob], filename, { type: "image/jpeg" });
                     saveAs(file);
                 }
-            }, 'image/png');
+            }, 'image/jpeg', 0.99);
         }
 
         function saveAs(blob) {
@@ -3291,14 +3090,12 @@
             a.download = blob.name;
 
             a.click();
-            window.URL.revokeObjectURL(url);
+            setTimeout(() => window.URL.revokeObjectURL(url), 1000);
             document.body.removeChild(a);
         }
 
         // Crop Watermark Variables
         let cropLogoImage = null;
-        // const cropLogoInput = document.getElementById('cropLogoInput'); // Removed
-        // const cropLogoStatus = document.getElementById('cropLogoStatus'); // Removed
 
         // Preview Watermark Tool Variables
         const previewWatermarkTool = document.getElementById('previewWatermarkTool');
@@ -3373,16 +3170,14 @@
             console.log('Watermark applied to preview edit canvas');
         }
 
-        function handleCropFileSelect(event) {
+        async function handleCropFileSelect(event) {
             console.log('handleCropFileSelect triggered', event);
             const file = event.target.files[0];
             if (file && file.type.startsWith('image/')) {
+                dropZone.style.display = 'none';
                 console.log('File is an image:', file.name);
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    console.log('FileReader onload triggered');
-                    originalCropImage = new Image();
-                    originalCropImage.onload = () => {
+                try {
+                    originalCropImage = await loadImageFile(file);
                         console.log('originalCropImage onload triggered', originalCropImage.width, originalCropImage.height);
                         let displayWidth = originalCropImage.width;
                         let displayHeight = originalCropImage.height;
@@ -3417,15 +3212,10 @@
                         cropSelection = { x: 0, y: 0, width: 0, height: 0, scaleFactor: scaleFactor }; // 新增：儲存縮放因子
                         isCropping = false;
                         cropImageArea.style.display = 'block'; // 確保裁切區域顯示
-                    };
-                    originalCropImage.onerror = () => {
-                        console.error('Error loading originalCropImage');
-                        status.innerHTML += '<br>圖片載入失敗，請檢查圖片檔案。';
-                    };
-                    originalCropImage.src = e.target.result;
-                    console.log('originalCropImage.src set');
-                };
-                reader.readAsDataURL(file);
+                } catch (error) {
+                    console.error('Error loading originalCropImage', error);
+                    status.innerHTML += '<br>圖片載入失敗，請檢查圖片檔案。';
+                }
             }
         }
 
@@ -3552,48 +3342,27 @@
                 0, 0, sourceWidth, sourceHeight              // 目標座標 (原始解析度)
             );
 
-            // 🔥 新增：自動將裁切後的圖片寬度縮至 1000px
+            // 自動將裁切後圖片的長邊縮至 1280px
             let finalCanvas = croppedCanvas;
-            if (croppedCanvas.width > 1000) {
-                console.log(`裁切後自動縮放: 原始寬度 ${croppedCanvas.width} -> 目標寬度 1000px`);
-                const newWidth = 1000;
-                const newHeight = (croppedCanvas.height / croppedCanvas.width) * 1000;
-
-                // 使用安全的高級縮放 (預設使用 balanced 品質)
-                finalCanvas = safeAdvancedImageScale(croppedCanvas, newWidth, newHeight, 'balanced');
+            const croppedLongSide = Math.max(croppedCanvas.width, croppedCanvas.height);
+            if (croppedLongSide > OUTPUT_LONG_SIDE) {
+                const scaleRatio = OUTPUT_LONG_SIDE / croppedLongSide;
+                const newWidth = Math.round(croppedCanvas.width * scaleRatio);
+                const newHeight = Math.round(croppedCanvas.height * scaleRatio);
+                const quality = scalingQuality.value;
+                console.log(`裁切後自動縮放: ${croppedCanvas.width}x${croppedCanvas.height} -> ${newWidth}x${newHeight}, 品質 ${quality}`);
+                finalCanvas = safeAdvancedImageScale(croppedCanvas, newWidth, newHeight, quality);
             }
-
-            // 🔥 Removed auto-apply watermark logic
-            // if (cropLogoImage) {
-            //     const ctx = finalCanvas.getContext('2d');
-
-            //     // 浮水印縮放 (縮小30%)
-            //     const logoWidth = cropLogoImage.width * 0.7;
-            //     const logoHeight = cropLogoImage.height * 0.7;
-
-            //     // 位置：右下角，保留 15px 邊距
-            //     // 注意：如果圖片被縮放到 1000px，邊距也應該相對調整，但這裡固定 15px 應該還好
-            //     const logoX = finalCanvas.width - logoWidth - 15;
-            //     const logoY = finalCanvas.height - logoHeight - 15;
-
-            //     ctx.save();
-            //     ctx.globalAlpha = 0.5; // 50% 透明度
-            //     ctx.drawImage(cropLogoImage, logoX, logoY, logoWidth, logoHeight);
-            //     ctx.restore();
-
-            //     console.log('已添加浮水印到裁切圖片');
-            // }
 
             // 🔥 新增：自動在圖片最外圍加上 1px 黑邊
             finalCanvas = addBlackBorder(finalCanvas);
 
             // 將裁切後的圖片顯示在預覽區
             showPreview(finalCanvas, 'cropped_image.jpg');
-            status.innerHTML = '圖片裁切完成！已自動調整寬度為 1000px。';
+            status.innerHTML = '圖片裁切完成！長邊已限制為 1280px。';
 
             // 裁切完成後，隱藏裁切區域並重置狀態
             originalCropImage = null;
-            // cropFileInput.value = ''; // 移除，因為已統一使用 fileInput
             cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
             cropSelectionCtx.clearRect(0, 0, cropSelectionCanvas.width, cropSelectionCanvas.height);
             cropSelection = { x: 0, y: 0, width: 0, height: 0 };
@@ -3601,18 +3370,16 @@
             cropImageArea.style.display = 'none';
 
             // 將模式切換回預設的 resize320，並更新按鈕狀態
-            // setMode('resize320'); // 移除自動切換模式，讓使用者自行選擇下一步
             dropZone.style.display = 'none'; // 確保拖曳區隱藏，因為預覽區會顯示
         }
 
         function cancelCrop() {
             originalCropImage = null;
-            // cropFileInput.value = ''; // 移除，因為已統一使用 fileInput
             cropCtx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
             cropSelectionCtx.clearRect(0, 0, cropSelectionCanvas.width, cropSelectionCanvas.height);
             cropSelection = { x: 0, y: 0, width: 0, height: 0 };
             isCropping = false;
-            // setMode('resize320'); // 移除自動切換模式，讓使用者自行選擇下一步 // 取消後，切換回預設模式
+            dropZone.style.display = 'flex';
         }
 
         // 新增的截圖並排功能腳本
@@ -3696,24 +3463,16 @@
             clearAllButton.style.display = uploadedImages.length > 0 ? 'inline-block' : 'none';
         }
 
-        function handleFileSelect(event) {
+        async function handleFileSelect(event) {
             const files = Array.from(event.target.files).slice(0, ARRANGE_MAX_IMAGES - uploadedImages.length);
-
-            files.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const img = new Image();
-                    img.crossOrigin = "anonymous";
-                    img.src = e.target.result;
-                    img.onload = function () {
-                        img._uid = Date.now() + '-' + Math.random().toString(36).substr(2, 9); // Assign unique ID
-                        uploadedImages.push(img);
-                        updateImageList();
-                        updateFileInputAndCount();
-                    }
-                }
-                reader.readAsDataURL(file);
+            const images = await Promise.all(files.map(file => loadImageFile(file)));
+            images.forEach(img => {
+                img._uid = Date.now() + '-' + Math.random().toString(36).slice(2, 11);
+                img._previewSrc = createThumbnailDataUrl(img);
+                uploadedImages.push(img);
             });
+            updateImageList();
+            updateFileInputAndCount();
         }
 
         function createImageItem(img, index) {
@@ -3722,7 +3481,7 @@
             div.draggable = true;
             div.dataset.uid = img._uid; // Store unique ID in DOM
             div.innerHTML = `
-                <img src="${img.src}" alt="Image ${index + 1}" draggable="false">
+                <img src="${img._previewSrc}" alt="Image ${index + 1}" draggable="false">
                 <button class="delete-button">刪除</button>
             `;
 
@@ -3743,7 +3502,7 @@
             e.dataTransfer.setData('text/plain', this.dataset.index);
         }
 
-        function dragEnd(e) {
+        function dragEnd() {
             this.classList.remove('dragging');
             document.querySelectorAll('.image-item').forEach(item => {
                 item.classList.remove('drag-over');
@@ -3757,7 +3516,7 @@
             }
         }
 
-        function dragLeave(e) {
+        function dragLeave() {
             this.classList.remove('drag-over');
         }
 
@@ -4125,10 +3884,9 @@
 
             console.log(`🔽 下載截圖並排: 使用JPEG品質 ${jpegQuality}`);
 
-            const link = document.createElement('a');
-            link.download = 'processed_image.jpg';
-            link.href = finalCanvas.toDataURL('image/jpeg', jpegQuality);
-            link.click();
+            finalCanvas.toBlob((blob) => {
+                if (blob) saveAs(new File([blob], createImageFilename(), { type: 'image/jpeg' }));
+            }, 'image/jpeg', jpegQuality);
         }
 
         window.addEventListener('load', function () {
@@ -4187,28 +3945,16 @@
         });
 
         // 無邊框版本的文件選擇處理
-        function borderlessHandleFileSelect(event) {
+        async function borderlessHandleFileSelect(event) {
             const files = Array.from(event.target.files).slice(0, MAX_IMAGES - borderlessUploadedImages.length);
-
-            files.forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const img = new Image();
-                    const dataUrl = e.target.result;
-                    if (dataUrl.startsWith('http')) img.crossOrigin = "anonymous";
-                    img.src = dataUrl;
-                    img.onload = function () {
-                        img._uid = Date.now() + '-' + Math.random().toString(36).substr(2, 9); // Assign unique ID
-                        borderlessUploadedImages.push(img);
-                        borderlessUpdateImageList();
-                        borderlessUpdateFileInputAndCount();
-                    }
-                    img.onerror = function () {
-                        console.error('圖片載入失敗:', file.name);
-                    };
-                }
-                reader.readAsDataURL(file);
+            const images = await Promise.all(files.map(file => loadImageFile(file)));
+            images.forEach(img => {
+                img._uid = Date.now() + '-' + Math.random().toString(36).slice(2, 11);
+                img._previewSrc = createThumbnailDataUrl(img);
+                borderlessUploadedImages.push(img);
             });
+            borderlessUpdateImageList();
+            borderlessUpdateFileInputAndCount();
         }
 
         // 無邊框版本的文件輸入更新
@@ -4230,7 +3976,7 @@
                 div.dataset.uid = img._uid; // Store unique ID in DOM
 
                 const imgElement = document.createElement('img');
-                imgElement.src = img.src;
+                imgElement.src = img._previewSrc;
                 imgElement.alt = `圖片 ${index + 1}`;
                 imgElement.draggable = false; // 🔥 防止圖片原生拖拽干擾
 
@@ -4449,7 +4195,7 @@
             borderlessStartY = e.clientY - rect.top;
         }
 
-        function borderlessDraw(e) {
+        function borderlessDraw() {
             if (!borderlessIsDrawing || !borderlessCurrentTool) return;
             // 預覽功能可以在這裡添加
         }
@@ -4695,10 +4441,9 @@
 
             console.log(`🔽 下載無邊框截圖並排: 使用JPEG品質 ${jpegQuality}`);
 
-            const link = document.createElement('a');
-            link.download = 'borderless_processed_image.jpg';
-            link.href = finalCanvas.toDataURL('image/jpeg', jpegQuality);
-            link.click();
+            finalCanvas.toBlob((blob) => {
+                if (blob) saveAs(new File([blob], createImageFilename(), { type: 'image/jpeg' }));
+            }, 'image/jpeg', jpegQuality);
         }
         // ============ 繁簡轉換功能 ============
 
@@ -5272,14 +5017,7 @@
 
         // External Hook for file upload
         window.mrLoadImage = async (file) => {
-            const img = new Image();
-            const reader = new FileReader();
-            const dataUrl = await new Promise((resolve) => {
-                reader.onload = (e) => resolve(e.target.result);
-                reader.readAsDataURL(file);
-            });
-            img.src = dataUrl;
-            await new Promise(r => img.onload = r);
+            const img = await loadImageFile(file);
 
             mrOriginalImage = img;
 
@@ -5547,13 +5285,7 @@
 
             // Safe Timestamp
             const now = new Date();
-            const pad = (n) => n.toString().padStart(2, '0');
-            const batchTimestamp = now.getFullYear() +
-                pad(now.getMonth() + 1) +
-                pad(now.getDate()) +
-                pad(now.getHours()) +
-                pad(now.getMinutes()) +
-                pad(now.getSeconds());
+            const batchTimestamp = formatDateTime(now);
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
@@ -5567,23 +5299,16 @@
                     processed++;
                     document.getElementById('mrBatchProcessedCount').textContent = `${processed} / ${total}`;
 
-                    const img = new Image();
-                    const reader = new FileReader();
-                    const dataUrl = await new Promise((resolve) => {
-                        reader.onload = (e) => resolve(e.target.result);
-                        reader.readAsDataURL(file);
-                    });
-                    img.src = dataUrl;
-                    await new Promise(r => img.onload = r);
+                    const img = await loadImageFile(file);
 
                     const { canvas } = await mrConditionalUpscale(img);
                     await mrEngine.removeWatermark(canvas);
 
-                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', getSelectedJpegQuality()));
 
                     // V3 Naming
                     const seq = (i + 1).toString().padStart(3, '0');
-                    const fileName = `Waterremove${batchTimestamp}_${seq}.jpg`;
+                    const fileName = `${batchTimestamp}_${seq}.jpg`;
 
                     window.mrBatchZip.file(fileName, blob);
 
@@ -5611,12 +5336,9 @@
         };
 
         // Aggressively assign onclick
-        mrBatchStartBtn.removeEventListener('click', Object); // Try to clear old (symbolic)
         mrBatchStartBtn.onclick = window.mrStartBatchV3;
         console.log("V3 Batch Handler Attached");
 
-        // Global Download Handler to bypass listener issues
-        // Global Download Handler to bypass listener issues
         // Global Download Handler to bypass listener issues
         window.mrDownloadAll = () => {
             if (!window.mrBatchZip) {
@@ -5639,19 +5361,11 @@
                 const link = document.createElement("a");
                 link.href = URL.createObjectURL(content);
 
-                // Format: WaterremoveYYYYMMDDHHmm
-                const now = new Date();
-                const pad = (n) => n.toString().padStart(2, '0');
-                const timestamp = now.getFullYear() +
-                    pad(now.getMonth() + 1) +
-                    pad(now.getDate()) +
-                    pad(now.getHours()) +
-                    pad(now.getMinutes());
-
-                link.download = `Waterremove${timestamp}.zip`;
+                link.download = `${formatDateTime()}.zip`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(link.href), 1000);
 
                 if (btn) btn.textContent = "📥 下載全部 (ZIP)";
             }).catch(function (err) {
@@ -5711,10 +5425,9 @@
         });
 
         document.getElementById('mrDownloadBtn').addEventListener('click', () => {
-            const link = document.createElement('a');
-            link.download = 'watermark_removed.jpg';
-            link.href = mrCurrentCanvas.toDataURL('image/jpeg', 0.85);
-            link.click();
+            mrCurrentCanvas.toBlob((blob) => {
+                if (blob) saveAs(new File([blob], createImageFilename(), { type: 'image/jpeg' }));
+            }, 'image/jpeg', getSelectedJpegQuality());
         });
 
         /* =========================================
@@ -5742,6 +5455,7 @@
         const cleanerAutocorrectPunct = document.getElementById('cleanerAutocorrectPunct');
         const cleanerAutocorrectSpace = document.getElementById('cleanerAutocorrectSpace');
 
+        const CLEANER_OPTIONS_STORAGE_KEY = 'htmlCleanerOptionsV1';
         let cleanerOptions = {
             removeDataPathToNode: true,
             removeDataIndexInNode: true,
@@ -5750,6 +5464,46 @@
             customAttributes: [],
             customTags: []
         };
+
+        function normalizeCleanerList(value) {
+            if (!Array.isArray(value)) return [];
+            return [...new Set(value
+                .filter(item => typeof item === 'string')
+                .map(item => item.trim())
+                .filter(Boolean))].slice(0, 100);
+        }
+
+        function loadCleanerOptions() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(CLEANER_OPTIONS_STORAGE_KEY) || 'null');
+                if (!saved || typeof saved !== 'object') return;
+                cleanerOptions = {
+                    removeDataPathToNode: saved.removeDataPathToNode !== false,
+                    removeDataIndexInNode: saved.removeDataIndexInNode !== false,
+                    autocorrectPunct: saved.autocorrectPunct !== false,
+                    autocorrectSpace: saved.autocorrectSpace !== false,
+                    customAttributes: normalizeCleanerList(saved.customAttributes),
+                    customTags: normalizeCleanerList(saved.customTags).map(tag => tag.toLowerCase())
+                };
+            } catch (error) {
+                console.warn('無法讀取 HTML Cleaner 本機設定，已使用預設值。', error);
+            }
+        }
+
+        function saveCleanerOptions() {
+            try {
+                localStorage.setItem(CLEANER_OPTIONS_STORAGE_KEY, JSON.stringify(cleanerOptions));
+            } catch (error) {
+                console.warn('無法保存 HTML Cleaner 本機設定。', error);
+            }
+        }
+
+        function syncCleanerControls() {
+            cleanerRemovePath.checked = cleanerOptions.removeDataPathToNode;
+            cleanerRemoveIndex.checked = cleanerOptions.removeDataIndexInNode;
+            cleanerAutocorrectPunct.checked = cleanerOptions.autocorrectPunct;
+            cleanerAutocorrectSpace.checked = cleanerOptions.autocorrectSpace;
+        }
 
         function updateCleaner() {
             const html = cleanerInput.value;
@@ -5811,7 +5565,7 @@
                             .replace(/\)/g, '）');
 
                         // 3. Restore URLs
-                        text = text.replace(/__URL_PLACEHOLDER_(\d+)__/g, (match, index) => {
+                        text = text.replace(/__URL_PLACEHOLDER_(\d+)__/g, (_, index) => {
                             return urls[index];
                         });
                     }
@@ -5863,7 +5617,15 @@
             cleanerOptions.customAttributes.forEach(attr => {
                 const tag = document.createElement('div');
                 tag.className = 'cleaner-tag';
-                tag.innerHTML = `<span>${attr}</span><span class="cleaner-tag-remove" onclick="removeCleanerAttr('${attr}')">×</span>`;
+                const label = document.createElement('span');
+                label.textContent = attr;
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'cleaner-tag-remove';
+                remove.textContent = '×';
+                remove.title = `移除 ${attr}`;
+                remove.addEventListener('click', () => removeCleanerAttr(attr));
+                tag.append(label, remove);
                 cleanerAttrList.appendChild(tag);
             });
 
@@ -5871,28 +5633,43 @@
             cleanerOptions.customTags.forEach(tagName => {
                 const tag = document.createElement('div');
                 tag.className = 'cleaner-tag';
-                tag.innerHTML = `<span>${tagName}</span><span class="cleaner-tag-remove" onclick="removeCleanerTag('${tagName}')">×</span>`;
+                const label = document.createElement('span');
+                label.textContent = tagName;
+                const remove = document.createElement('button');
+                remove.type = 'button';
+                remove.className = 'cleaner-tag-remove';
+                remove.textContent = '×';
+                remove.title = `移除 ${tagName}`;
+                remove.addEventListener('click', () => removeCleanerTag(tagName));
+                tag.append(label, remove);
                 cleanerTagList.appendChild(tag);
             });
         }
 
-        window.removeCleanerAttr = (attr) => {
+        function removeCleanerAttr(attr) {
             cleanerOptions.customAttributes = cleanerOptions.customAttributes.filter(a => a !== attr);
+            saveCleanerOptions();
             renderCleanerTags();
             updateCleaner();
-        };
+        }
 
-        window.removeCleanerTag = (tagName) => {
+        function removeCleanerTag(tagName) {
             cleanerOptions.customTags = cleanerOptions.customTags.filter(t => t !== tagName);
+            saveCleanerOptions();
             renderCleanerTags();
             updateCleaner();
-        };
+        }
+
+        loadCleanerOptions();
+        syncCleanerControls();
+        renderCleanerTags();
 
         cleanerAddAttrBtn.addEventListener('click', () => {
             const val = cleanerNewAttr.value.trim();
             if (val && !cleanerOptions.customAttributes.includes(val)) {
                 cleanerOptions.customAttributes.push(val);
                 cleanerNewAttr.value = '';
+                saveCleanerOptions();
                 renderCleanerTags();
                 updateCleaner();
             }
@@ -5903,16 +5680,18 @@
             if (val && !cleanerOptions.customTags.includes(val)) {
                 cleanerOptions.customTags.push(val);
                 cleanerNewTag.value = '';
+                saveCleanerOptions();
                 renderCleanerTags();
                 updateCleaner();
             }
         });
 
         cleanerInput.addEventListener('input', updateCleaner);
-        cleanerRemovePath.addEventListener('change', updateCleaner);
-        cleanerRemoveIndex.addEventListener('change', updateCleaner);
-        cleanerAutocorrectPunct.addEventListener('change', updateCleaner);
-        cleanerAutocorrectSpace.addEventListener('change', updateCleaner);
+        [cleanerRemovePath, cleanerRemoveIndex, cleanerAutocorrectPunct, cleanerAutocorrectSpace]
+            .forEach(control => control.addEventListener('change', () => {
+                updateCleaner();
+                saveCleanerOptions();
+            }));
 
         cleanerClearBtn.addEventListener('click', () => {
             cleanerInput.value = '';
