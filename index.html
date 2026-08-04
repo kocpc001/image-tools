@@ -74,15 +74,26 @@
             margin-bottom: 10px;
         }
 
+        #previewCanvasContainer,
         #canvasContainer,
         #borderlessCanvasContainer {
             position: relative;
             display: inline-block;
+            width: fit-content;
+            max-width: 100%;
+            vertical-align: top;
+            line-height: 0;
         }
 
+        #previewCanvas,
         #canvas,
         #borderlessCanvas {
-            border: 1px solid #000;
+            border: 0 !important;
+            box-shadow: inset 0 0 0 1px #000;
+            display: block;
+            width: auto;
+            max-width: 100%;
+            height: auto;
         }
 
         #imageList,
@@ -162,12 +173,21 @@
             background-color: #e0e0e0;
         }
 
+        #previewEditCanvas,
         #editCanvas,
         #borderlessEditCanvas {
             position: absolute;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
             cursor: crosshair;
+        }
+
+        #previewDownloadButton,
+        #downloadButton,
+        #borderlessDownloadButton {
+            line-height: normal;
         }
 
         #clearAllButton,
@@ -1760,6 +1780,16 @@
             context.fillRect(0, 0, canvas.width, canvas.height);
             context.drawImage(image, 0, 0, canvas.width, canvas.height);
             return canvas.toDataURL('image/jpeg', 0.72);
+        }
+
+        function getScaledCanvasPoint(canvas, event) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: Math.max(0, Math.min(canvas.width, (event.clientX - rect.left) * scaleX)),
+                y: Math.max(0, Math.min(canvas.height, (event.clientY - rect.top) * scaleY))
+            };
         }
 
         // ============ 安全的高級圖像縮放算法 (修復線條問題) ============
@@ -3676,7 +3706,8 @@
         function startDrawing(e) {
             if (!currentTool) return;
             isDrawing = true;
-            [startX, startY] = [e.offsetX, e.offsetY];
+            const point = getScaledCanvasPoint(editCanvas, e);
+            [startX, startY] = [point.x, point.y];
             baseEditState = editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height);
         }
 
@@ -3688,7 +3719,8 @@
 
         function draw(e) {
             if (!isDrawing || !currentTool) return;
-            const [endX, endY] = [e.offsetX, e.offsetY];
+            const point = getScaledCanvasPoint(editCanvas, e);
+            const [endX, endY] = [point.x, point.y];
 
             editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height);
             if (editHistory.length > 0) {
@@ -3938,12 +3970,6 @@
             return [Math.round(r / count), Math.round(g / count), Math.round(b / count)];
         }
 
-        let lastX, lastY;
-        editCanvas.addEventListener('mousemove', (e) => {
-            lastX = e.offsetX;
-            lastY = e.offsetY;
-        });
-
         // 無邊框版本的文件選擇處理
         async function borderlessHandleFileSelect(event) {
             const files = Array.from(event.target.files).slice(0, MAX_IMAGES - borderlessUploadedImages.length);
@@ -4190,9 +4216,9 @@
         function borderlessStartDrawing(e) {
             if (!borderlessCurrentTool) return;
             borderlessIsDrawing = true;
-            const rect = borderlessEditCanvas.getBoundingClientRect();
-            borderlessStartX = e.clientX - rect.left;
-            borderlessStartY = e.clientY - rect.top;
+            const point = getScaledCanvasPoint(borderlessEditCanvas, e);
+            borderlessStartX = point.x;
+            borderlessStartY = point.y;
         }
 
         function borderlessDraw() {
@@ -4204,9 +4230,9 @@
             if (!borderlessIsDrawing || !borderlessCurrentTool) return;
             borderlessIsDrawing = false;
 
-            const rect = borderlessEditCanvas.getBoundingClientRect();
-            const endX = e.clientX - rect.left;
-            const endY = e.clientY - rect.top;
+            const point = getScaledCanvasPoint(borderlessEditCanvas, e);
+            const endX = point.x;
+            const endY = point.y;
 
             // 保存當前狀態到歷史記錄
             if (borderlessEditHistory.length > 10) {
