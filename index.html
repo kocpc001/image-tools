@@ -1792,6 +1792,62 @@
             };
         }
 
+        function getCanvasSelectionRect(canvas, startX, startY, endX, endY) {
+            const left = Math.max(0, Math.floor(Math.min(startX, endX)));
+            const top = Math.max(0, Math.floor(Math.min(startY, endY)));
+            const right = Math.min(canvas.width, Math.ceil(Math.max(startX, endX)));
+            const bottom = Math.min(canvas.height, Math.ceil(Math.max(startY, endY)));
+
+            return {
+                x: left,
+                y: top,
+                width: Math.max(0, right - left),
+                height: Math.max(0, bottom - top)
+            };
+        }
+
+        function createMosaicImageData(sourceCtx, rect, blockSize = 10) {
+            if (rect.width === 0 || rect.height === 0) return null;
+
+            const imageData = sourceCtx.getImageData(rect.x, rect.y, rect.width, rect.height);
+            const { width, height, data } = imageData;
+
+            for (let blockY = 0; blockY < height; blockY += blockSize) {
+                for (let blockX = 0; blockX < width; blockX += blockSize) {
+                    const blockWidth = Math.min(blockSize, width - blockX);
+                    const blockHeight = Math.min(blockSize, height - blockY);
+                    let red = 0;
+                    let green = 0;
+                    let blue = 0;
+                    let alpha = 0;
+                    const pixelCount = blockWidth * blockHeight;
+
+                    for (let y = 0; y < blockHeight; y++) {
+                        for (let x = 0; x < blockWidth; x++) {
+                            const index = ((blockY + y) * width + blockX + x) * 4;
+                            red += data[index];
+                            green += data[index + 1];
+                            blue += data[index + 2];
+                            alpha += data[index + 3];
+                        }
+                    }
+
+                    const color = [red, green, blue, alpha].map(value => Math.round(value / pixelCount));
+                    for (let y = 0; y < blockHeight; y++) {
+                        for (let x = 0; x < blockWidth; x++) {
+                            const index = ((blockY + y) * width + blockX + x) * 4;
+                            data[index] = color[0];
+                            data[index + 1] = color[1];
+                            data[index + 2] = color[2];
+                            data[index + 3] = color[3];
+                        }
+                    }
+                }
+            }
+
+            return imageData;
+        }
+
         // ============ 安全的高級圖像縮放算法 (修復線條問題) ============
 
         /**
@@ -2868,15 +2924,8 @@
                 previewDrawArrow(previewStartX, previewStartY, endX, endY);
                 // 不需要額外的stroke，因為箭頭函數已經處理了所有繪製
             } else if (previewCurrentTool === 'mosaic') {
-                // 🔥 修正：馬賽克工具需要整數座標
-                const x = Math.round(Math.min(previewStartX, endX));
-                const y = Math.round(Math.min(previewStartY, endY));
-                const width = Math.round(Math.abs(endX - previewStartX));
-                const height = Math.round(Math.abs(endY - previewStartY));
-
-                if (width > 0 && height > 0) {
-                    previewDrawMosaic(x, y, width, height);
-                }
+                const rect = getCanvasSelectionRect(previewEditCanvas, previewStartX, previewStartY, endX, endY);
+                previewDrawMosaic(rect);
             }
 
             previewBaseEditState = previewEditCtx.getImageData(0, 0, previewEditCanvas.width, previewEditCanvas.height);
@@ -2942,41 +2991,9 @@
             previewEditCtx.restore();
         }
 
-        function previewDrawMosaic(x, y, width, height) {
-            const MOSAIC_SIZE = 10;
-            const imageData = previewCtx.getImageData(x, y, width, height);
-            const stride = imageData.width; // 🔥 修正：使用實際的 imageData 寬度作為 stride
-
-            for (let i = 0; i < width; i += MOSAIC_SIZE) {
-                for (let j = 0; j < height; j += MOSAIC_SIZE) {
-                    const pixelData = previewGetAverageColor(imageData, i, j, MOSAIC_SIZE, width, height, stride);
-                    for (let mx = 0; mx < MOSAIC_SIZE && i + mx < width; mx++) {
-                        for (let my = 0; my < MOSAIC_SIZE && j + my < height; my++) {
-                            // 🔥 修正：使用 stride 計算索引
-                            const index = ((j + my) * stride + (i + mx)) * 4;
-                            imageData.data[index] = pixelData[0];
-                            imageData.data[index + 1] = pixelData[1];
-                            imageData.data[index + 2] = pixelData[2];
-                        }
-                    }
-                }
-            }
-            previewEditCtx.putImageData(imageData, x, y);
-        }
-
-        function previewGetAverageColor(imageData, startX, startY, size, width, height, stride) {
-            let r = 0, g = 0, b = 0, count = 0;
-            for (let i = 0; i < size && startX + i < width; i++) {
-                for (let j = 0; j < size && startY + j < height; j++) {
-                    // 🔥 修正：使用 stride 計算索引
-                    const index = ((startY + j) * stride + (startX + i)) * 4;
-                    r += imageData.data[index];
-                    g += imageData.data[index + 1];
-                    b += imageData.data[index + 2];
-                    count++;
-                }
-            }
-            return [Math.round(r / count), Math.round(g / count), Math.round(b / count)];
+        function previewDrawMosaic(rect) {
+            const imageData = createMosaicImageData(previewCtx, rect);
+            if (imageData) previewEditCtx.putImageData(imageData, rect.x, rect.y);
         }
 
         function previewUndo() {
@@ -3762,11 +3779,8 @@
                 drawArrow(startX, startY, endX, endY);
                 // 不需要額外的stroke，因為箭頭函數已經處理了所有繪製
             } else if (currentTool === 'mosaic') {
-                const x = Math.min(startX, endX);
-                const y = Math.min(startY, endY);
-                const width = Math.abs(endX - startX);
-                const height = Math.abs(endY - startY);
-                drawMosaic(x, y, width, height);
+                const rect = getCanvasSelectionRect(editCanvas, startX, startY, endX, endY);
+                drawMosaic(rect);
             }
 
             baseEditState = editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height);
@@ -3938,36 +3952,9 @@
             editCanvas.style.cursor = 'crosshair';
         });
 
-        function drawMosaic(x, y, width, height) {
-            const imageData = ctx.getImageData(x, y, width, height);
-            for (let i = 0; i < width; i += MOSAIC_SIZE) {
-                for (let j = 0; j < height; j += MOSAIC_SIZE) {
-                    const pixelData = getAverageColor(imageData, i, j, MOSAIC_SIZE, width, height);
-                    for (let mx = 0; mx < MOSAIC_SIZE && i + mx < width; mx++) {
-                        for (let my = 0; my < MOSAIC_SIZE && j + my < height; my++) {
-                            const index = ((j + my) * width + (i + mx)) * 4;
-                            imageData.data[index] = pixelData[0];
-                            imageData.data[index + 1] = pixelData[1];
-                            imageData.data[index + 2] = pixelData[2];
-                        }
-                    }
-                }
-            }
-            editCtx.putImageData(imageData, x, y);
-        }
-
-        function getAverageColor(imageData, startX, startY, size, width, height) {
-            let r = 0, g = 0, b = 0, count = 0;
-            for (let i = 0; i < size && startX + i < width; i++) {
-                for (let j = 0; j < size && startY + j < height; j++) {
-                    const index = ((startY + j) * width + (startX + i)) * 4;
-                    r += imageData.data[index];
-                    g += imageData.data[index + 1];
-                    b += imageData.data[index + 2];
-                    count++;
-                }
-            }
-            return [Math.round(r / count), Math.round(g / count), Math.round(b / count)];
+        function drawMosaic(rect) {
+            const imageData = createMosaicImageData(ctx, rect, MOSAIC_SIZE);
+            if (imageData) editCtx.putImageData(imageData, rect.x, rect.y);
         }
 
         // 無邊框版本的文件選擇處理
@@ -4272,11 +4259,8 @@
             } else if (borderlessCurrentTool === 'arrow') {
                 borderlessDrawArrow(borderlessStartX, borderlessStartY, endX, endY);
             } else if (borderlessCurrentTool === 'mosaic') {
-                const x = Math.min(borderlessStartX, endX);
-                const y = Math.min(borderlessStartY, endY);
-                const width = Math.abs(endX - borderlessStartX);
-                const height = Math.abs(endY - borderlessStartY);
-                borderlessDrawMosaic(x, y, width, height);
+                const rect = getCanvasSelectionRect(borderlessEditCanvas, borderlessStartX, borderlessStartY, endX, endY);
+                borderlessDrawMosaic(rect);
             }
 
             borderlessEditHistory.push(borderlessEditCtx.getImageData(0, 0, borderlessEditCanvas.width, borderlessEditCanvas.height));
@@ -4338,38 +4322,9 @@
         }
 
         // 無邊框版本的馬賽克繪製函數
-        function borderlessDrawMosaic(x, y, width, height) {
-            const MOSAIC_SIZE = 10;
-            const imageData = borderlessCtx.getImageData(x, y, width, height);
-            for (let i = 0; i < width; i += MOSAIC_SIZE) {
-                for (let j = 0; j < height; j += MOSAIC_SIZE) {
-                    const pixelData = borderlessGetAverageColor(imageData, i, j, MOSAIC_SIZE, width, height);
-                    for (let mx = 0; mx < MOSAIC_SIZE && i + mx < width; mx++) {
-                        for (let my = 0; my < MOSAIC_SIZE && j + my < height; my++) {
-                            const index = ((j + my) * width + (i + mx)) * 4;
-                            imageData.data[index] = pixelData[0];
-                            imageData.data[index + 1] = pixelData[1];
-                            imageData.data[index + 2] = pixelData[2];
-                        }
-                    }
-                }
-            }
-            borderlessEditCtx.putImageData(imageData, x, y);
-        }
-
-        // 無邊框版本的平均顏色計算函數
-        function borderlessGetAverageColor(imageData, startX, startY, size, totalWidth, totalHeight) {
-            let r = 0, g = 0, b = 0, count = 0;
-            for (let x = startX; x < startX + size && x < totalWidth; x++) {
-                for (let y = startY; y < startY + size && y < totalHeight; y++) {
-                    const index = (y * totalWidth + x) * 4;
-                    r += imageData.data[index];
-                    g += imageData.data[index + 1];
-                    b += imageData.data[index + 2];
-                    count++;
-                }
-            }
-            return [Math.floor(r / count), Math.floor(g / count), Math.floor(b / count)];
+        function borderlessDrawMosaic(rect) {
+            const imageData = createMosaicImageData(borderlessCtx, rect);
+            if (imageData) borderlessEditCtx.putImageData(imageData, rect.x, rect.y);
         }
 
         // 無邊框版本的撤銷功能
