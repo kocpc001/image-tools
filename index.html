@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>圖片處理工具 v11 - 安全版</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -519,275 +518,6 @@
             line-height: 1;
         }
 
-        /* Magic Remover (v2) styles */
-        #magicRemoverArea {
-            display: none;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            max-width: 1000px;
-            margin: 20px auto;
-        }
-
-        .mr-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .mr-controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            background: #f7fafc;
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-        .mr-label {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #4a5568;
-        }
-
-        .mr-canvas-container {
-            position: relative;
-            background: #edf2f7;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 2px solid #e2e8f0;
-            min-height: 400px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #mrCanvas {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        #mrMaskCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            cursor: crosshair;
-            pointer-events: none;
-            /* We handle events on the main canvas wrapper */
-        }
-
-        .mr-progress-container {
-            display: none;
-            margin-top: 10px;
-        }
-
-        .mr-progress-bar {
-            height: 10px;
-            background: #edf2f7;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .mr-progress-fill {
-            height: 100%;
-            background: #4299e1;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .mr-btn {
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border: none;
-        }
-
-        .mr-btn-primary {
-            background: #4299e1;
-            color: white;
-        }
-
-        .mr-btn-primary:hover {
-            background: #3182ce;
-        }
-
-        .mr-btn-secondary {
-            background: #e2e8f0;
-            color: #2d3748;
-        }
-
-        .mr-btn-secondary:hover {
-            background: #cbd5e0;
-        }
-
-        .mr-switch {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-
-            .mr-switch input {
-                cursor: pointer;
-            }
-
-            /* Batch Image Grid Styles */
-            .mr-batch-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                gap: 15px;
-                width: 100%;
-                padding: 15px;
-                max-height: 100%;
-                overflow-y: auto;
-                box-sizing: border-box;
-            }
-
-            .mr-batch-item {
-                position: relative;
-                aspect-ratio: 1;
-                border-radius: 8px;
-                overflow: hidden;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                background: #f0f0f0;
-                transition: transform 0.2s;
-            }
-
-            .mr-batch-item:hover {
-                transform: translateY(-2px);
-            }
-
-            .mr-batch-item img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-            .mr-batch-badge {
-                position: absolute;
-                top: 5px;
-                left: 5px;
-                background: rgba(0, 0, 0, 0.6);
-                color: white;
-                font-size: 0.7rem;
-                padding: 2px 6px;
-                border-radius: 4px;
-                backdrop-filter: blur(2px);
-            }
-
-            .mr-batch-badge.success {
-                background: #48bb78;
-            }
-
-            .mr-batch-badge.processing {
-                background: #ed8936;
-            }
-
-            .mr-batch-delete {
-                position: absolute;
-                top: 5px;
-                right: 5px;
-                background: #e53e3e;
-                color: white;
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                font-size: 0.8rem;
-                opacity: 0;
-                transition: opacity 0.2s;
-            }
-        }
-
-        .mr-switch input {
-            cursor: pointer;
-        }
-
-        /* Batch Image Grid Styles */
-        .mr-batch-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 15px;
-            width: 100%;
-            padding: 15px;
-            max-height: 100%;
-            overflow-y: auto;
-            box-sizing: border-box;
-        }
-
-        .mr-batch-item {
-            position: relative;
-            aspect-ratio: 1;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            background: #f0f0f0;
-            transition: transform 0.2s;
-        }
-
-        .mr-batch-item:hover {
-            transform: translateY(-2px);
-        }
-
-        .mr-batch-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .mr-batch-badge {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            background: rgba(0, 0, 0, 0.6);
-            color: white;
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            backdrop-filter: blur(2px);
-        }
-
-        .mr-batch-badge.success {
-            background: #48bb78;
-        }
-
-        .mr-batch-badge.processing {
-            background: #ed8936;
-        }
-
-        .mr-batch-delete {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #e53e3e;
-            color: white;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 0.8rem;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-
-        .mr-batch-item:hover .mr-batch-delete {
-            opacity: 1;
-        }
-
         /* Word Table to HTML Styles Refined - Absolute Positioning Strategy */
         #wordTableToHtmlArea {
             display: none;
@@ -990,6 +720,18 @@
             touch-action: none;
             user-select: none;
         }
+        #youtubeArea { display: none; margin: 24px auto; padding: 24px; border: 1px solid #ddd; border-radius: 16px; background: #fafafa; }
+        #youtubeArea h2 { margin-top: 0; }
+        #youtubeArea p { color: #555; line-height: 1.6; }
+        .yt-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 16px 0; }
+        #youtubeUrl { flex: 1; min-width: 160px; padding: 12px; border: 1px solid #aaa; border-radius: 8px; font: inherit; }
+        #youtubeArea button, #youtubeArea select { padding: 10px 14px; border-radius: 8px; font: inherit; }
+        #youtubeArea button { border: 0; background: #176bdb; color: white; cursor: pointer; }
+        #youtubeArea button:disabled { opacity: .5; cursor: not-allowed; }
+        #youtubeLogoFile { display: block; max-width: 100%; }
+        #youtubePreview { display: block; max-width: 100%; height: auto; margin: 16px auto; }
+        #youtubePreview[hidden], #youtubeWatermarkOptions[hidden] { display: none; }
+        #youtubeStatus { min-height: 1.5em; overflow-wrap: anywhere; }
     </style>
 
 </head>
@@ -1024,9 +766,46 @@
         <button id="borderlessScreenshotArrangeMode" class="mode-button">無邊框截圖並排</button>
         <button id="chineseConvMode" class="mode-button">簡繁轉換</button>
         <button id="htmlCleanerMode" class="mode-button">去除無用字元</button>
-        <button id="magicRemoverMode" class="mode-button">去浮水印</button>
+        <button id="youtubeMode" class="mode-button">YouTube 封面下載</button>
         <button id="wordTableMode" class="mode-button">Word表格轉HTML</button>
     </div>
+    <section id="youtubeArea" aria-labelledby="youtubeHeading">
+        <h2 id="youtubeHeading">YouTube 封面下載</h2>
+        <p>貼上影片連結，取得可用的最高解析度封面。輸出統一為 JPG、長邊最多 <span id="youtubeSizeLimit">1280</span>px，保持比例、不放大小圖，固定加上 1px 黑框。</p>
+        <form id="youtubeForm">
+            <label for="youtubeUrl">YouTube 影片連結或影片 ID</label>
+            <div class="yt-row">
+                <input id="youtubeUrl" type="text" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off" required>
+                <button id="youtubeFetch" type="submit">取得封面</button>
+            </div>
+        </form>
+        <div class="yt-row"><label><input id="youtubeAddWatermark" type="checkbox"> 加入浮水印</label></div>
+        <div id="youtubeWatermarkOptions" hidden>
+            <div class="yt-row">
+                <label for="youtubeLogoSource">浮水印來源</label>
+                <select id="youtubeLogoSource">
+                    <option value="ada">已儲存的阿達專用 Logo</option>
+                    <option value="general">已儲存的一般 Logo</option>
+                    <option value="custom">自訂 Logo</option>
+                </select>
+                <label for="youtubeLogoFile">上傳自訂 Logo</label>
+                <input id="youtubeLogoFile" type="file" accept="image/*">
+            </div>
+            <div class="yt-row">
+                <label for="youtubePosition">位置</label>
+                <select id="youtubePosition">
+                    <option value="bottom-right">右下角</option><option value="bottom-left">左下角</option>
+                    <option value="top-right">右上角</option><option value="top-left">左上角</option>
+                </select>
+                <label for="youtubeOpacity">透明度 <output id="youtubeOpacityValue">50%</output></label>
+                <input id="youtubeOpacity" type="range" min="10" max="100" value="50">
+            </div>
+        </div>
+        <p id="youtubeStatus" role="status" aria-live="polite">支援一般影片、youtu.be 短網址、Shorts 與直播連結。</p>
+        <canvas id="youtubePreview" hidden aria-label="處理後的 YouTube 封面預覽"></canvas>
+        <button id="youtubeDownload" type="button" disabled>下載封面 JPG</button>
+    </section>
+
     <div id="dropZone">
         <p>拖曳圖片到這裡、點擊選擇檔案，或按 Ctrl+V 貼上圖片</p>
     </div>
@@ -1111,280 +890,6 @@
             <button id="borderlessMosaicTool">馬賽克工具</button>
             <button id="borderlessUndoButton">復原</button>
             <button id="borderlessClearButton">清除所有編輯</button>
-        </div>
-    </div>
-
-    <!-- 去浮水印區域 (v2) -->
-    <div id="magicRemoverArea">
-        <div class="mr-container">
-            <div class="mr-controls"
-                style="display: flex; flex-direction: column; gap: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
-
-                <!-- Main Control Row: Modes (Left) + Buttons (Right) -->
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-
-                    <!-- Left: Modes -->
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <span class="mr-label" style="font-weight: bold; color: #4a5568;">處理模式:</span>
-
-                        <label class="mr-switch" style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="checkbox" id="mrGeminiMode" checked>
-                            <span style="font-size: 0.9rem;">Gemini 專用 (自動)</span>
-                        </label>
-
-                        <label class="mr-switch" style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
-                            <input type="checkbox" id="mrBatchMode">
-                            <span style="font-size: 0.9rem;">批次處理</span>
-                        </label>
-                    </div>
-
-                    <!-- Right: Compact Action Buttons -->
-                    <div style="display: flex; gap: 10px;">
-                        <button id="mrProcessBtn" class="mr-btn mr-btn-primary"
-                            style="font-size: 0.9rem; padding: 6px 15px; min-width: auto;" disabled>
-                            移除浮水印
-                        </button>
-                        <button id="mrDownloadBtn" class="mr-btn mr-btn-secondary"
-                            style="font-size: 0.9rem; padding: 6px 15px; min-width: auto;" disabled>
-                            下載照片
-                        </button>
-                        <button id="mrOneClickBtn" class="mr-btn"
-                            style="font-size: 0.9rem; padding: 6px 15px; min-width: auto; background-color: #eab308; color: white;"
-                            disabled>
-                            ⚡ 一鍵完成
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Secondary Row: Settings (Hidden by default) -->
-                <div id="mrBrushSizeGroup"
-                    style="display: none; border-top: 1px solid #e2e8f0; padding-top: 10px; margin-top: 5px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <label class="mr-label" style="font-size: 0.9rem;">魔法棒容許度: <span id="mrBrushSizeVal"
-                                style="background: #edf2f7; padding: 2px 6px; border-radius: 4px;">20</span></label>
-                        <input type="range" id="mrBrushSize" min="1" max="100" value="20"
-                            style="flex: 1; max-width: 300px;">
-                    </div>
-                </div>
-            </div>
-
-            <div class="mr-canvas-container" id="mrCanvasWrapper"
-                style="align-items: center; justify-content: center; position: relative;">
-                <!-- Dedicated File Input for Magic Remover -->
-                <input type="file" id="mrFileInput" accept="image/*" style="display: none;">
-
-                <div id="mrEmptyState"
-                    style="text-align: center; color: #718096; cursor: pointer; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-                    <p style="pointer-events: none;">請先上傳圖片或從預覽區帶入<br><span
-                            style="font-size: 0.8em; color: #a0aec0;">(點擊此處上傳)</span></p>
-                </div>
-                <div id="mrCanvasInner" style="position: relative; display: none;">
-                    <!-- Reset/Undo Button (Top-Left) -->
-                    <div id="mrResetImageBtn" style="
-                        position: absolute; 
-                        top: 10px; 
-                        left: 10px; 
-                        width: 30px; 
-                        height: 30px; 
-                        background-color: #3182ce; 
-                        color: white; 
-                        border-radius: 50%; 
-                        display: flex; 
-                        align-items: center; 
-                        justify-content: center; 
-                        cursor: pointer; 
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                        z-index: 20;
-                        font-weight: bold;
-                        user-select: none;
-                    " title="重新選取 / 復原">↩</div>
-
-                    <canvas id="mrCanvas"
-                        style="display: block; max-width: 100%; max-height: 70vh; width: auto; height: auto;"></canvas>
-
-                    <!-- Close Button overlay -->
-                    <div id="mrCloseBtn" style="
-                        position: absolute; 
-                        top: 10px; 
-                        right: 10px; 
-                        width: 30px; 
-                        height: 30px; 
-                        background-color: #e53e3e; 
-                        color: white; 
-                        border-radius: 50%; 
-                        display: flex; 
-                        align-items: center; 
-                        justify-content: center; 
-                        cursor: pointer; 
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                        z-index: 20;
-                        font-weight: bold;
-                        user-select: none;
-                    ">✕</div>
-                </div>
-                <!-- 遮罩畫布會動態層疊在 mrCanvasInner 裡面 -->
-            </div>
-
-            <!-- Batch Processing Area (Hidden by default) -->
-            <div id="mrBatchContainer"
-                style="display: none; height: 500px; background: linear-gradient(135deg, #a78bfa 0%, #d8b4fe 100%); border-radius: 12px; position: relative; overflow: hidden; color: white;">
-                <!-- Batch Stats Panel (Left) -->
-                <div style="
-                    position: absolute; left: 0; top: 0; bottom: 0; width: 250px; 
-                    background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px); 
-                    padding: 15px; display: flex; flex-direction: column; gap: 10px; 
-                    overflow-y: auto; box-sizing: border-box; /* Fix width overflow */
-                    scrollbar-width: none; /* Hide scrollbar Firefox */
-                 ">
-                    <!-- Hide Scrollbar Webkit -->
-                    <style>
-                        #mrBatchContainer div::-webkit-scrollbar {
-                            display: none;
-                        }
-                    </style>
-
-                    <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 5px;">處理設定</div>
-
-                    <div style="background: rgba(255, 255, 255, 0.3); padding: 10px; border-radius: 12px;">
-                        <div style="font-weight: bold; margin-bottom: 2px; font-size: 0.9rem;">Gemini 專用模式</div>
-                        <div style="font-size: 0.75rem; opacity: 0.8; margin-bottom: 5px; line-height: 1.2;">針對 Gemini
-                            生成圖片的浮水印印進行無損移除</div>
-                        <label class="mr-switch" style="transform: scale(0.9); transform-origin: left;">
-                            <input type="checkbox" checked disabled> <!-- Always on for batch -->
-                            <span>啟用中</span>
-                        </label>
-                    </div>
-
-                    <label for="mrBatchInput" style="
-                        display: block; width: 100%; padding: 10px; background: #6366f1; 
-                        color: white; text-align: center; border-radius: 8px; cursor: pointer; 
-                        font-weight: bold; transition: background 0.2s; font-size: 0.9rem;
-                        box-sizing: border-box;
-                    ">
-                        🔼 選擇圖片
-                    </label>
-                    <input type="file" id="mrBatchInput" multiple accept="image/*" style="display: none;">
-
-                    <div style="flex: 1; font-size: 0.85rem;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span>總計圖片 :</span>
-                            <span id="mrBatchTotalCount">0</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span>已處理 :</span>
-                            <span id="mrBatchProcessedCount">0</span>
-                        </div>
-                        <div
-                            style="display: flex; justify-content: space-between; margin-bottom: 5px; color: #4ade80; font-weight: bold;">
-                            <span>已完成 :</span>
-                            <span id="mrBatchSuccessCount">0</span>
-                        </div>
-                    </div>
-
-                    <button id="mrBatchStartBtn" disabled style="
-                        width: 100%; padding: 10px; background: #8b5cf6; color: white; 
-                        border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem;
-                        box-sizing: border-box;
-                    ">✨ 開始批次處理</button>
-
-                    <button id="mrBatchDownloadBtn" disabled style="
-                        width: 100%; padding: 10px; background: rgba(255, 255, 255, 0.2); 
-                        color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem;
-                        box-sizing: border-box;
-                    ">📥 下載全部 (ZIP)</button>
-
-                    <button id="mrBatchClearBtn" style="
-                        width: 100%; padding: 8px; background: transparent; color: rgba(255,255,255,0.7); 
-                        border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; cursor: pointer; font-size: 0.85rem;
-                        box-sizing: border-box;
-                    ">🗑️ 清空列表</button>
-                </div>
-
-                <style>
-                    /* Force Batch Grid Styles */
-                    .mr-batch-grid {
-                        display: grid;
-                        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                        gap: 10px;
-                        width: 100%;
-                        padding: 10px;
-                        overflow-y: auto;
-                        box-sizing: border-box;
-                    }
-
-                    .mr-batch-item {
-                        position: relative;
-                        width: 100%;
-                        aspect-ratio: 1;
-                        background: rgba(0, 0, 0, 0.2);
-                        border-radius: 8px;
-                        overflow: hidden;
-                    }
-
-                    .mr-batch-item img {
-                        width: 100%;
-                        height: 100%;
-                        object-fit: cover;
-                        display: block;
-                    }
-
-                    .mr-batch-badge {
-                        position: absolute;
-                        top: 4px;
-                        left: 4px;
-                        font-size: 0.7rem;
-                        padding: 2px 6px;
-                        border-radius: 4px;
-                        background: rgba(0, 0, 0, 0.6);
-                        color: white;
-                    }
-
-                    .mr-batch-badge.success {
-                        background: #48bb78;
-                    }
-
-                    .mr-batch-delete {
-                        position: absolute;
-                        top: 2px;
-                        right: 2px;
-                        width: 20px;
-                        height: 20px;
-                        background: rgba(0, 0, 0, 0.5);
-                        color: white;
-                        border-radius: 50%;
-                        text-align: center;
-                        line-height: 20px;
-                        font-size: 12px;
-                        cursor: pointer;
-                    }
-
-                    .mr-batch-delete:hover {
-                        background: red;
-                    }
-                </style>
-
-                <!-- Drop Zone (Right) -->
-                <div id="mrBatchDropZone" style="
-                    margin: 10px 10px 10px 260px; /* 250px sidebar + 10px gap */
-                    height: calc(100% - 20px); 
-                    display: flex; flex-direction: column; align-items: center; justify-content: center; 
-                    border: 2px dashed rgba(255,255,255,0.3); border-radius: 8px;
-                 ">
-                    <div style="font-size: 3rem; opacity: 0.8; margin-bottom: 15px;">📤</div>
-                    <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 8px;">拖放圖片到此處</div>
-                    <div style="opacity: 0.8; font-size: 0.9rem;">或點擊左側「選擇圖片」按鈕上傳</div>
-                    <div style="opacity: 0.6; font-size: 0.8rem; margin-top: 5px;">支援 PNG、JPG 格式，可一次上傳多張</div>
-                </div>
-            </div>
-
-            <div id="mrProgressContainer" class="mr-progress-container">
-                <div class="mr-label">處理進度: <span id="mrProgressVal">0</span>%</div>
-                <div class="mr-progress-bar">
-                    <div id="mrProgressFill" class="mr-progress-fill"></div>
-                </div>
-            </div>
-
         </div>
     </div>
 
@@ -1733,6 +1238,7 @@
         </div>
     </div>
 
+    <script src="youtube-thumbnail.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/opencc-js@1.0.5/dist/umd/full.min.js"></script>
     <script>
         // Define global constants for max crop dimensions
@@ -2018,7 +1524,7 @@
 
         const cropImageModeBtn = document.getElementById('cropImageMode');
         const chineseConvModeBtn = document.getElementById('chineseConvMode');
-        const magicRemoverModeBtn = document.getElementById('magicRemoverMode');
+        const youtubeModeBtn = document.getElementById('youtubeMode');
         const wordTableModeBtn = document.getElementById('wordTableMode');
         const logoInput = document.getElementById('logoInput');
         const logoStatus = document.getElementById('logoStatus');
@@ -2030,7 +1536,7 @@
         const borderlessScreenshotArrangeDiv = document.getElementById('borderlessScreenshotArrange');
         const cropImageArea = document.getElementById('cropImageArea');
         const chineseConvArea = document.getElementById('chineseConvArea');
-        const magicRemoverArea = document.getElementById('magicRemoverArea');
+        const youtubeArea = document.getElementById('youtubeArea');
         const wordTableToHtmlArea = document.getElementById('wordTableToHtmlArea');
         const cropCanvas = document.getElementById('cropCanvas');
         const cropCtx = cropCanvas.getContext('2d');
@@ -2087,6 +1593,16 @@
         let cropStartX, cropStartY, cropEndX, cropEndY;
         let isCropping = false;
         let cropSelection = { x: 0, y: 0, width: 0, height: 0 };
+
+        const youtubeTool = YouTubeThumbnail.mount({
+            maxSide: OUTPUT_LONG_SIDE,
+            scale: (image, width, height) => safeAdvancedImageScale(image, width, height, scalingQuality.value),
+            quality: getSelectedJpegQuality,
+            getLogo: source => source === 'ada' ? adaSpecialLogo : logoImage,
+            filename: createImageFilename,
+            save: saveAs
+        });
+        scalingQuality.addEventListener('change', () => youtubeTool.render());
 
         // 從 localStorage 讀取上次使用的 Logo
         const lastUsedLogo = localStorage.getItem('lastUsedLogo');
@@ -2181,7 +1697,7 @@
         screenshotArrangeModeBtn.addEventListener('click', () => setMode('screenshotArrange'));
         cropImageModeBtn.addEventListener('click', () => setMode('cropImage')); // 新增：裁切模式按鈕事件
         chineseConvModeBtn.addEventListener('click', () => setMode('chineseConv'));
-        magicRemoverModeBtn.addEventListener('click', () => setMode('magicRemover'));
+        youtubeModeBtn.addEventListener('click', () => setMode('youtube'));
         const htmlCleanerModeBtn = document.getElementById('htmlCleanerMode');
         const htmlCleanerArea = document.getElementById('htmlCleanerArea');
         htmlCleanerModeBtn.addEventListener('click', () => setMode('htmlCleaner'));
@@ -2353,7 +1869,7 @@
             }
 
             currentMode = mode;
-            [resize320ModeBtn, resize1280ModeBtn, addWatermarkModeBtn, adaSpecialModeBtn, screenshotArrangeModeBtn, cropImageModeBtn, borderlessScreenshotArrangeModeBtn, chineseConvModeBtn, htmlCleanerModeBtn, magicRemoverModeBtn, wordTableModeBtn].forEach(btn => btn.classList.remove('active'));
+            [resize320ModeBtn, resize1280ModeBtn, addWatermarkModeBtn, adaSpecialModeBtn, screenshotArrangeModeBtn, cropImageModeBtn, borderlessScreenshotArrangeModeBtn, chineseConvModeBtn, htmlCleanerModeBtn, youtubeModeBtn, wordTableModeBtn].forEach(btn => btn.classList.remove('active'));
 
             selectLogoBtn.style.display = 'none';
             selectAdaLogoBtn.style.display = 'none';
@@ -2364,7 +1880,8 @@
             cropImageArea.style.display = 'none';
             chineseConvArea.style.display = 'none';
             htmlCleanerArea.style.display = 'none';
-            magicRemoverArea.style.display = 'none';
+            youtubeArea.style.display = 'none';
+            youtubeTool.cancel();
             wordTableToHtmlArea.style.display = 'none';
 
             // 清除之前的處理檔案資訊
@@ -2437,14 +1954,12 @@
                 dropZone.style.display = 'none';
                 fileInput.style.display = 'none';
                 previewArea.style.display = 'none';
-            } else if (mode === 'magicRemover') {
-                magicRemoverModeBtn.classList.add('active');
-                pageTitle.textContent = '去浮水印 (Gemini v2)';
-                magicRemoverArea.style.display = 'block';
-                dropZone.style.display = 'none'; // Hide global drop zone for this mode
-                fileInput.style.display = 'none';
-                previewArea.style.display = 'none';
-                if (typeof mrRefreshCanvas === 'function') mrRefreshCanvas();
+            } else if (mode === 'youtube') {
+                youtubeModeBtn.classList.add('active');
+                pageTitle.textContent = 'YouTube 封面下載';
+                youtubeArea.style.display = 'block';
+                youtubeTool.render();
+                dropZone.style.display = 'none';
             } else if (mode === 'wordTable') {
                 wordTableModeBtn.classList.add('active');
                 pageTitle.textContent = 'Word 表格轉 HTML';
@@ -2459,126 +1974,6 @@
             fileInput.value = '';
         }
 
-        // Add event listener for One-Click button
-        document.getElementById('mrOneClickBtn').addEventListener('click', mrOneClickProcess);
-
-        // One-Click Process Function
-        // One-Click Process Function
-        async function mrOneClickProcess() {
-            if (currentMode !== 'magicRemover' || mrIsProcessing) return;
-
-            // Check if image is loaded
-            if (!mrOriginalImage) {
-                alert('請先載入圖片！');
-                return;
-            }
-
-            // Check if ADA Logo is loaded
-            if (!adaSpecialLogo) {
-                alert('請先在「電腦王阿達專用」模式中設定 Logo！');
-                return;
-            }
-
-            const btn = document.getElementById('mrOneClickBtn');
-            const originalText = btn.innerHTML;
-
-            try {
-                // Set Processing State
-                mrIsProcessing = true;
-                btn.innerHTML = '⏳ 處理中...';
-                mrUpdateButtons(); // Disable all buttons
-
-                // Initialize Engine if needed
-                if (!mrEngine) {
-                    try {
-                        mrEngine = await GeminiWatermarkEngine.create();
-                    } catch (e) {
-                        throw new Error("引擎初始化失敗: " + e.message);
-                    }
-                }
-
-                // 1. Prepare Image (Upscale if needed for better watermark removal)
-                console.log('--- One-Click: Step 1: Upscale & Remove Watermark ---');
-                const { canvas: upscaledCanvas } = await mrConditionalUpscale(mrOriginalImage);
-
-                // 2. Remove Watermark
-                await mrEngine.removeWatermark(upscaledCanvas);
-
-                // 3. Resize to 1280px (Longest side)
-                console.log('--- One-Click: Step 2: Resize to 1280px ---');
-                let targetW = upscaledCanvas.width;
-                let targetH = upscaledCanvas.height;
-                const longSide = Math.max(targetW, targetH);
-
-                if (longSide > OUTPUT_LONG_SIDE) {
-                    if (targetW > targetH) {
-                        targetW = OUTPUT_LONG_SIDE;
-                        targetH = (upscaledCanvas.height / upscaledCanvas.width) * OUTPUT_LONG_SIDE;
-                    } else {
-                        targetH = OUTPUT_LONG_SIDE;
-                        targetW = (upscaledCanvas.width / upscaledCanvas.height) * OUTPUT_LONG_SIDE;
-                    }
-                }
-
-                // 使用頂端選擇的縮放品質
-                const quality = scalingQuality.value;
-                const jpegQuality = getSelectedJpegQuality();
-                const resizedCanvas = safeAdvancedImageScale(upscaledCanvas, targetW, targetH, quality);
-
-                // 4. Add Black Border
-                console.log('--- One-Click: Step 3: Add Border ---');
-                const borderedCanvas = addBlackBorder(resizedCanvas);
-
-                // 5. Add Ada Watermark
-                console.log('--- One-Click: Step 4: Add Ada Logo ---');
-                const finalCanvas = document.createElement('canvas');
-                finalCanvas.width = borderedCanvas.width;
-                finalCanvas.height = borderedCanvas.height;
-                const ctx = finalCanvas.getContext('2d');
-                setupHighQualityCanvas(ctx);
-                ctx.drawImage(borderedCanvas, 0, 0);
-
-                const logoWidth = adaSpecialLogo.width * 0.7;
-                const logoHeight = adaSpecialLogo.height * 0.7;
-                const logoX = finalCanvas.width - logoWidth - 15;
-                const logoY = finalCanvas.height - logoHeight - 15;
-
-                ctx.globalAlpha = 0.5;
-                ctx.drawImage(adaSpecialLogo, logoX, logoY, logoWidth, logoHeight);
-
-                // 6. Download & Preview
-                console.log('--- One-Click: Step 5: Download & Preview ---');
-
-                // Update Preview with the final result
-                mrOriginalImage = finalCanvas;
-                mrHistory = [];
-                mrHistoryIndex = -1;
-                if (mrMaskCanvas) {
-                    const mCtx = mrMaskCanvas.getContext('2d');
-                    mCtx.clearRect(0, 0, mrMaskCanvas.width, mrMaskCanvas.height);
-                }
-                mrRefreshCanvas();
-
-                finalCanvas.toBlob((blob) => {
-                    if (blob) {
-                        const filename = createImageFilename();
-                        const file = new File([blob], filename, { type: "image/jpeg" });
-                        saveAs(file);
-                    } else {
-                        throw new Error('Canvas conversions failed');
-                    }
-                }, 'image/jpeg', jpegQuality);
-
-            } catch (err) {
-                console.error('One-Click Process Error:', err);
-                alert('處理發生錯誤: ' + err.message);
-            } finally {
-                // Restore State
-                mrIsProcessing = false;
-                btn.innerHTML = originalText;
-                mrUpdateButtons(); // Re-enable buttons
-            }
-        }
         function handleFiles(e) {
             console.log('handleFiles triggered');
             e.preventDefault();
@@ -2618,12 +2013,7 @@
                         handleCropFileSelect({ target: { files: [file] } }); // 模擬事件對象
                         status.innerHTML += '<br>圖片已載入裁切區，請繪製裁切範圍。';
                         return; // 裁切模式下不進入預覽區，直接顯示裁切介面
-                    } else if (currentMode === 'magicRemover') {
-                        if (typeof mrLoadImage === 'function') {
-                            mrLoadImage(file);
-                            status.innerHTML += '<br>圖片已載入去浮水印區，請開始處理。';
-                        }
-                        return;
+
                     }
 
                     if (result && result.canvas) {
@@ -2673,16 +2063,12 @@
             const borderedCanvas = document.createElement('canvas');
             const borderedCtx = borderedCanvas.getContext('2d');
 
-            // 新canvas尺寸為原尺寸+2px（上下各1px，左右各1px）
-            borderedCanvas.width = canvas.width + 2;
-            borderedCanvas.height = canvas.height + 2;
-
-            // 填充黑色背景
-            borderedCtx.fillStyle = 'black';
-            borderedCtx.fillRect(0, 0, borderedCanvas.width, borderedCanvas.height);
-
-            // 在中央繪製原始圖片
-            borderedCtx.drawImage(canvas, 1, 1);
+            borderedCanvas.width = canvas.width;
+            borderedCanvas.height = canvas.height;
+            borderedCtx.drawImage(canvas, 0, 0);
+            borderedCtx.strokeStyle = 'black';
+            borderedCtx.lineWidth = 1;
+            borderedCtx.strokeRect(0.5, 0.5, canvas.width - 1, canvas.height - 1);
 
             return borderedCanvas;
         }
@@ -2746,8 +2132,9 @@
                         } else if (mode === 'addWatermark') {
                             // 添加浮水印 - 🔥 使用品質設定
                             const canvas = document.createElement('canvas');
-                            canvas.width = img.width;
-                            canvas.height = img.height;
+                            const dimensions = YouTubeThumbnail.fitDimensions(img.width, img.height, OUTPUT_LONG_SIDE);
+                            canvas.width = dimensions.width;
+                            canvas.height = dimensions.height;
                             const ctx = canvas.getContext('2d');
 
                             // 🔥 根據品質設定選擇Canvas設置
@@ -2771,13 +2158,13 @@
                             // 透明底 PNG：先鋪白底
                             ctx.fillStyle = '#ffffff';
                             ctx.fillRect(0, 0, canvas.width, canvas.height);
-                            ctx.drawImage(img, 0, 0);
+                            ctx.drawImage(safeAdvancedImageScale(img, canvas.width, canvas.height, quality), 0, 0);
 
                             // 添加浮水印（縮小30%）
                             const logoWidth = logoImage.width * 0.7;
                             const logoHeight = logoImage.height * 0.7;
-                            const logoX = img.width - logoWidth - 15;
-                            const logoY = img.height - logoHeight - 15;
+                            const logoX = canvas.width - logoWidth - 15;
+                            const logoY = canvas.height - logoHeight - 15;
 
                             ctx.globalAlpha = 0.5;
                             ctx.drawImage(logoImage, logoX, logoY, logoWidth, logoHeight);
@@ -4623,796 +4010,6 @@
 
         /* =========================================
            End HTML Cleaner Logic
-           ========================================= */
-
-        /* =========================================
-           Gemini Watermark Remover Logic (v2)
-           ========================================= */
-        let mrEngine = null;
-        let mrOriginalImage = null; // Store the original loaded image
-        let mrCurrentCanvas = document.getElementById('mrCanvas');
-        let mrMaskCanvas = null;
-        let mrIsProcessing = false;
-        let mrHistory = [];
-        let mrHistoryIndex = -1;
-
-        const MR_BG_48_DATA = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAIAAADYYG7QAAAGVElEQVR4nMVYvXIbNxD+FvKMWInXmd2dK7MTO7sj9QKWS7qy/Ab2o/gNmCp0JyZ9dHaldJcqTHfnSSF1R7kwlYmwKRYA93BHmkrseMcjgzgA++HbH2BBxhhmBiB/RYgo+hkGSFv/ZOY3b94w89u3b6HEL8JEYCYATCAi2JYiQ8xMDADGWsvMbfVagm6ZLxKGPXr0qN/vJ0mSpqn0RzuU//Wu9MoyPqxmtqmXJYwxxpiAQzBF4x8/fiyN4XDYoZLA5LfEhtg0+glMIGZY6wABMMbs4CaiR8brkYIDwGg00uuEMUTQ1MYqPBRRYZjZ+q42nxEsaYiV5VOapkmSSLvX62VZprUyM0DiQACIGLCAESIAEINAAAEOcQdD4a+2FJqmhDd/YEVkMpmEtrU2igCocNHW13swRBQYcl0enxbHpzEhKo0xSZJEgLIsC4Q5HJaJ2Qg7kKBjwMJyCDciBBcw7fjSO4tQapdi5vF43IZ+cnISdh9Y0At2RoZWFNtLsxr8N6CUTgCaHq3g+Pg4TVO1FACSaDLmgMhYC8sEQzCu3/mQjNEMSTvoDs4b+nXny5cvo4lBJpNJmKj9z81VrtNhikCgTsRRfAklmurxeKx9JZIsy548eeITKJgAQwzXJlhDTAwDgrXkxxCD2GfqgEPa4rnBOlApFUC/39fR1CmTyWQwGAQrR8TonMRNjjYpTmPSmUnC8ODgQHqSJDk7O9uNBkCv15tOp4eHh8SQgBICiCGu49YnSUJOiLGJcG2ydmdwnRcvXuwwlpYkSabTaZS1vyimc7R2Se16z58/f/jw4Z5LA8iy7NmzZ8J76CQ25F2UGsEAJjxo5194q0fn9unp6fHx8f5oRCQ1nJ+fbxtA3HAjAmCMCaGuAQWgh4eH0+k0y7LGvPiU3CVXV1fz+by+WQkCJYaImKzL6S' +
-            'EN6uMpjBVMg8FgOp3GfnNPQADqup79MLv59AlWn75E/vAlf20ibmWg0Pn06dPJZNLr9e6nfLu8//Ahv/gFAEdcWEsgZnYpR3uM9KRpOplMGmb6SlLX9Ww2q29WyjH8+SI+pD0GQJIkJycn/8J/I4mWjaQoijzPb25uJJsjmAwqprIsG4/HbVZ2L/1fpCiKoijKqgTRBlCWZcPhcDQafUVfuZfUdb1cLpfL5cePf9Lr16/3zLz/g9T1quNy+F2FiYjSNB0Oh8Ph8HtRtV6vi6JYLpdVVbmb8t3dnSAbjUbRNfmbSlmWeZ6XHytEUQafEo0xR0dHUdjvG2X3Sd/Fb0We56t6BX8l2mTq6BCVnqOjo7Ozs29hRGGlqqrOr40CIKqeiGg8Hn/xcri/rG/XeZ7/evnrjjGbC3V05YC/BSRJ8urVq36/3zX7Hjaq63o+n19fX/upUqe5VxFok7UBtQ+T6XQ6GAz2Vd6Ssizn8/nt7a3ay1ZAYbMN520XkKenpx0B2E2SLOo+FEWxWPwMgMnC3/adejZMYLLS42r7oH4LGodpsVgURdHQuIcURbFYLDYlVKg9sCk5wpWNiHym9pUAEQGG6EAqSxhilRQWi0VZVmrz23yI5cPV1dX5TwsmWGYrb2TW36OJGjdXhryKxEeHvjR2Fgzz+bu6XnVgaHEmXhytEK0W1aUADJPjAL6CtPZv5rsGSvUKtv7r8/zdj+v1uoOUpsxms7qunT6+g1/TvTQCxE6XR2kBqxjyZo6K66gsAXB1fZ3neQdJSvI8X61WpNaMWCFuKNrkGuGGmMm95fhpvPkn/f6lAgAuLy/LstyGpq7r9+8d4rAr443qaln/ehHt1siv3dvt2B/RDpJms5lGE62gEy9az0XGcQCK3DL4DTPr0pPZEjPAZVlusoCSoihWqzpCHy7ODRXhbUTJly9oDr4fKDaV9NZJUrszPOjsI0a/FzfwNt4eHH+BSyICqK7rqqo0u0VRrFYrid' +
-            'yN87L3pBYf7qvq3wqc3DMldJmiK06pgi8uLqQjAAorRG+p+zLUxks+z7rOkOzlIUy8yrAcQFVV3a4/ywBPmJsVMcTM3l/h9xDlLga4I1PDGaD7UNBPuCKBleUfy2gd+DOrPWubGHJJyD+L+LCTjEXEgH//2uSxhu1/Xzocy+VSL+2cUhrqLVZ/jTYL0IMtQEklT3/iWCutzUljDDNXVSVHRFWW7SOtccHag6V/AF1/slVRyOkZAAAAAElFTkSuQmCC';
-        const MR_BG_96_DATA = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAIAAABt+uBvAAAfrElEQVR4nJV9zXNc15Xf75zXIuBUjG45M7GyEahFTMhVMUEvhmQqGYJeRPTG1mokbUL5v5rsaM/CkjdDr4b2RqCnKga9iIHJwqCyMCgvbG/ibparBGjwzpnF+bjnvm7Q9isU2Hj93r3nno/f+bgfJOaZqg4EJfglSkSXMtLAKkRETKqqRMM4jmC1Z5hZVZEXEylUiYgAISKBf8sgiKoqDayqIkJEKBeRArh9++7BwcHn558/+8XRz//30cDDOI7WCxGBCYCIZL9EpKoKEKCqzFzpr09aCzZAb628DjAAggBin5UEBCPfuxcRiIpIG2+On8TuZ9Ot9eg+Pxt9+TkIIDBZL9lU/yLv7Czeeeedra2txWLxzv948KXtL9WxGWuS1HzRvlKAFDpKtm8yGMfRPmc7diVtRcA+8GEYGqMBEDEgIpcABKqkSiIMgYoIKQjCIACqojpmQ+v8IrUuRyVJ9pk2qY7Gpon0AIAAJoG+8Z/eaGQp9vb2UloCFRWI6igQJQWEmGbeCBGI7DMpjFpmBhPPBh/zbAATRCEKZSgn2UzEpGyM1iZCKEhBopzq54IiqGqaWw5VtXAkBl9V3dlUpG2iMD7Yncpcex7eIO/tfb3IDbu7u9kaFTv2Xpi1kMUAmJi5ERDWnZprJm/jomCohjJOlAsFATjJVcIwzFgZzNmKqIg29VNVIiW2RkLD1fGo2hoRQYhBAInAmBW/Z0SD9y9KCmJ9663dVB8o3n77bSJ7HUQ08EBEzMxGFyuxjyqErwLDt1FDpUzfBU6n2w6JYnRlrCCljpXMDFUEv9jZFhDoRAYo8jDwMBiVYcwAYI0Y7xuOAvW3KS0zM7NB5jAMwdPR/jSx77755ny+qGqytbV1/fr11Oscnph+a1PDqphErjnGqqp0eYfKlc1mIz4WdStxDWJms8+0II' +
-            'TdyeWoY2sXgHFalQBiEClctswOBETqPlEASXAdxzGG5L7JsA/A/q1bQDEkAoAbN27kDbN6/1FVHSFjNyS3LKLmW1nVbd9NHsRwxBCoYaKqmpyUREl65IYzKDmaVo1iO0aEccHeGUdXnIo4CB+cdpfmrfHA5eVlEXvzdNd3dxtF4V/39/cFKujIJSIaWMmdReqFjGO2ZpaCUGRXc1COvIIOhbNL3acCQDb2Es5YtIIBI3SUgZw7Ah1VBKpQmH0RlCAQ81noVd16UnKMpOBa93twRbvx9t5ivnC1MQ4Rwaxsd7eyu36wUQzkxDMxmd9Rl6uxyaU+du6/sEBERkMrUmSgY97DyGN7pwlc4UqUuq1q0Cgi6LlrHtY0yNQnv5qMZ/23iHexf/OmhXr5ajZycHC/oklqsT1BAYK1lxy/RtCUNphW0uDCZUdJP3UBCgAwmEYVoiEBmyBEauFJ0w4JnGdWSvCHJHK5TimY3BW5hUqNnoxpNkYiWuzM927sdWakjUfXd3cX83mMzBVcRaAGgo0wOA5YvGZdiMjo5sZEA4NLMK2SKAZpumZDViWMgBjgFoHXq0p7YpberAgA5iC0iMgF7r4fKX/nZDSmqvfu3attrne0f+tWCsmxdhhSlao/yp5SkZkpoj6dtN/rshANptFVfZgtsHAJSKYmREqkDNWxSYM5GjWvpIAoGIJIgkR1lPBrEQCqQiwzM91G+ACGYLHz+q39W5UlTkC5c/f2nWvXrjnQBLKk3WlkdqRQESIGKPwdjxp4Fw4XmaVYKKUQqKE+GEqw4COIIZHwYqkpqtpsLeJOs50ItFpgYoJJL1Dl74lEoobLChbqARiGYX9/XzHV3OzU/tza2rp7925VE44rlcJlTi2VqcplXWeQMfVTmg63Cak+UIIXVQXzbHAzjywnHhsQTtSkoapE3GJiu6Tpp/VYs1PjkcHBl+c7+/v7BKoaQ2SOCCDNb27fuX1t65qJmgYWBIIw0eDphRJM8l' +
-            'r426ROMABSQs3FwAB5EDMMM+ZZlXc+gprFQDnMm2salYFGdQEosU+2aFmuMdX+ybdM8kb3/YP788WihUONJiViTVgnbG9/6c7du0Q0ljCKIoJvFBY3VEU2USuQELdMkJhNhKZiGmlTY5CZTyZyImLGLlBNpRUikKmRB2/mHUM7Mj50iYWXcUMI6YmKBX47Ozs3b36jKg4oYgKFNUupWap3bt+Z7+xYDigiSiygcRyppNkM0lHM1ZICMjJUVCz4NtlbVcfZqgohHaEQwUgtlyoYJ9KKT6lKIpLp/LpbMV3wBKIm0OKZoaq/raOM/3qJgkQUEj44OLCRh4ynvjLU2f/c3tp68OBBakcx2FYkMDmJiNmIB3PULjT1j7ciQKnxXQ2UeBgYUHMzAEQvFSNYlYQwQFrEGVA1dE2IQERMAgMEYjCRDzPPKmX2+e0be/vfuBkKktgIoqaGwbMmmL29vTff3I1xewUqC0Cq5nOK6TFqrquqyqoOUi11hPnZsUV8FLHiQAxRRoG0asNExMNg+XdVv57TbQAWR4hLz6Dh0kJEVU0LB/BO6MJEObuakY2td3Hvfvfd7e1t6omMyAUAtBaOyxUm1hHfY5NbwBClC2Sg51qmYJANzx2JjtAxogZk7uspj3PNQx6DYCJmmmkEqESkKqZlKfaDeweL+VxrvFwGktwBoAnU4c4W88X9gwNS8TqBR+3+UGW4KQcR7GGyorcIhyKnETAzgxkDqZKKoZiqZNbUkm/K8K5wfRIUVAiotfcUiKpSqwB6Vqnq6PPVr3713r17zfLXL+rvR9ICdSC/ffvO7u51J52b+mdklLDNnNoRH/q6lUZoHmQjm2UmzUpGhElehIZ0fHE8F4XoQDOGFRXJ80e28iKrEmGQEYl/RMqzGZhFHC/mX955/72/s8jMR7+RR21U8bV9DA159913t7f/HdEAZVI2s4o40Avno14Gs9j9aY1CGth7nsjMEX+LYIQQKUcVqahAKkhyN0' +
-            'EhYajoUfMpLWpwf+/Ba7mDg4OD+c7CzCgUr5MwjCkGF9IqCl0pjTBfLL77ne8YiQ0uu8C6hdfVRWRMv24Wlo4F9Gg+Q0RliqMRMdjT1fWYfKxCmDcBj1kAWADmwAYmZfMCYFXC3x7cu7l/s3aSvxQgTutWr5umi4sPYWoAsHdj787f3CZS1bFiykAzCBGxjKo0jIFKqqPIZdR61GZZmBkggM39JdYyD9mmiLAqVDDhKFFXh88Xwr6iqoQWQVRWpg4CgOj169cP7h1URdCsKJKDVGOcexxMwoCJur3zzjtvvvlmEWpTZx3B/BplfBQSjVG0cC+RyzNEbSqGzPtIiSnQziom7AVgcJ+2mYoSaPAqTxbx3PGJVtS3Mtt8/vr7f/felWijUFFMHFpGiRWzC2Db9f7777/++rwW5y/FFEqho1uHKBMDnGhrHj39jE8ujqqqIMdsq4VZENfGU6UBQGS0e7XMXJ9J866/VTNphkB3dnYePny4tbVV360aMf1btUEzrX3f5+vb29sPH364mM9TZw1rndpWq3HK1wsAOQoeuijRO7Q2lUSQDlut7mPqbNZYp5KJyGZfqjVx5Htl1ghgnr8+//B7Hy4WiylrvK3yO3lAoLCyyENexdT54vXvffi9+Zd3krzWPCmjhoJUw+6cNVNVUlYlJcEwad7wNN8n8vpGIr/VSqg9AAf5Rk1KI8DbMkVsb29/+DC4c7U77741gK55WSIRNXY2ZbTocbH44IMPtra2mNnTV3fBha/FRyNYv0mp1+4ARAOriAXDSqIK5kEtrFQwD5k0O/sJsNS5xARtxYUCTPPXd95/7/2v/sc3oo/SNSHgxP5qk/QETy+d1sI4f4DQyiB5RwFguVz94B9+sFwumVkuPd2hCBpVRxXYDGiUotlm7pQ8MRAoiAY0F6SjqcXANjBVtaUtEQwrs8fvlgTGMwT48pc6Z5D8ev311x9++HA+n1OIpDGIHEpy6M6g6uJTa6x8BlKrqC' +
-            'O8WyffxrXVavXo0aPVapVZVap/zBrYSNtnJWmCV62fAZByA+nIGxiIUiBskYy7ZGtLCb5GoiS3KOoa3FkAJXGpHrrVEBUTPbcgsY83jF+K9dpspmz+13w+//Dhhzs7O4YGCYh1MqrhdLzV1i6VycUasvgaEcN80ybEjBUNHDBkDnxQ7bhjgsolI2+99dZ77723tbUVaw7Mhf8lFxUdydBR+/trPKJ4CsD5+fnHH398dnZm34dTK1ojwp57kJJHaomzFafYqoLD7Jqqyviv5iOTQV3oSMX02yxeV/S8fef2tx98GxvB7y+6NvJigkf9Y+Ytar+Hh4eHP3uao1ARtnRd1Tz1RschyGURREQDzVSViGeqHllVDVJV046CTVZAaBUr++e1115799139/b2/oIB/5nf+3dmlpFuxFfUMwW9ChyfHB8+fbparXzsANEACKACxxq7HD3JEk57nckKzRRrEOr0rk+o2qPsXPeyb/gvr5Ardnd3v/Pud82dV/q6QeJP8GjKkfyNeHddg9Y4st77arX64ccf/f73v4cID1CBxMIdtizMWSMI7xzYxMmBzFAasqShWdBd4uP2GoBr167dPzi4fefOnzvsyajSneczsAC8Wk7vuSjuqm7UoI3COPzZ039+eig2HUDwWg+8dgxEEkIWqDqDEJ6deDYQKcTr8LGMzCbsWwJBRKphVord3d3vfue788V8M3HNbVOSEXyJxyYMqhxZG2TXxeSP3g9ufHH1cvlPT56cnp5G+JmFSDe9EqmIGVchakDeyuds2seZyTyOl4AHkPOdnQcPvr1344ZFfH0E6ExxRhRV8BrN1CG194nR0qwW9BbDqdwpZjjVIwoaqvYRYKj0yeHy5UvYmuVSFOw6goeOnq/Nrr3WKo9j1ZqWyAhGAFuvbd+9e/f2ndvb29ubHA2Zs82eJpy6Mthr/KXmrjc/ENyZ3J+E6Y2hrsDEbfAnJ8efHD5dLpdMM1UFCW2EToB8RqPN0r' +
-            'j9ZyUo37y2de3u3Tt3bt/1GOcV+l+tqR+AM+iqd5uou/rQn8GgK9halcsTDn9/uVwdnxwf//JfVqsVD6gFE9iyX26RdHPtlkZYSgHAErSdxfyb3/zm7dt/s7W1vWlkV4/zFWpy1firt9qoTVfx6CpyOvPsX1aAcHJ8cnh4uFqtmFnkkpkrr+CxDDvuGu6kHu2++ebBwf3d67vxKLDuNeqw1z3OVfHeK4Zn6sCEUcG2WGYtpvuL4tA1oytNOGT/6lenJycnn356CkDEc4OEFwJ7+AdAFbu71/f29m7d2u9UpoYnVw3sFXrRkRufuupUfEFrjVwdBF3ZC2LsiKrAelSl3TvM/Ic//OHs7Ozk5P+enZ3lYigzMWxtbb99Y+/69et7e3tXmhKV1oMEb4XNvF2DpgBUjSX5EP62Mah5/U2hzSsYtNFsJ8C0Rnx8pUmMmkmKrlarFy/Onj9//tvf/na5XNKd/3rnwTsPGgUdCnh+0cF87SZ1ta2gaBR2JE/AuwsCE8ZfwQWahpT55JW2TNMQqQ6qNexfhKQ6Mf/0pz/lO7dbKFwmgaxbLVyaEFy7105lJhFyzyqvJKxHwGVSrNKdXXR8mejZ5FnP4LXeL2sl2jYDiqmaYE0Tvjnxe/fuzba3m02VMnCIND53I6qmUc1nSjQBWise6WiNYi39IZEh6JtyhLLmuHZV9TRnIvF6amqngGZPhgzkAiZE+wbJpIrPzy/48OnTJpM1BEAKk6b369gmH6+6GXpBU4doItA11KgtaNPojV2o1yK5GW8PfOtXgE+17q7jo6NnRAN/5Stf+ev/8Fdf//rXd3enm0omUeYr/Nhffl0BORT68oqoEuXVDS5s7ZWNnNoI4UrnFxfPT391dnZ2enp6cXER6yBdD8fd3es3b+6/9dZb8/l8I+VY49qfc00z1Y6u9ac3RxUdmmn/cG1yveUJg7Sgftw8Pz8/Pjk+PX3+4uw3sdRHPZImanXZTMG+duNrt27t3/' +
-            'jaXhJxZbmno6/knzUXWwvSYClSK25c4Yw6gIdepcSb4G/DY5PnCQDOzl4cPj08++zXICLL46XlsV6Trjuw/GJV1fmXF/fv379586bfs2nDnBhZj32ok0/mX5EuUoQejJgNmPJi3aP/ycG/ysSom0FC082Li4ufPzs6OTlZLpeAwFKuEcaNnA0lWxgdjQ0gYZBqrIwQArCzmO/v79+6ub9YLCpTYOFPDuwqkitY2AjDH13hl4IxtBbLKCZhgze6ITQl0HqmQoCen58/Ozo6Ojq6uDi3u5ZmCSmJTe359AQREc+GtqJFGSQQJfKikk2ejSrMvPPvv3z//v2b+zfTrVYoVcvjwoF0SlyVCx3FmxiU4fb6yHsG1cFr90wPN63li4vznx/9/Ojo6PKLL2SSmDIJKSuRwnbrkA9zKLPPZWrQ9gXaQit7wOrQO/Odb33rW9/4L9+oGjSpARGzqnS2UEOVdW5sMCKsffEnUKWZ/BXX6enzJz958vLlS1X1FQheWeS0GFtCZ3X3WIo5+KKY5stiupaI6opMz3GZANz4z1978ODBYrFoeUKfgmX9xW+/gkEbsXnCkbU7V3iM4v+K7qxWy398/Pizz36TrwwE9X3ABoheurcimRtXaJBnEiWf4GSQ1Wvd58XmGYQ23bt3r+1n2ui101w2lUr6Ofu+KDEpg1IkhH0jU/ZuigmPnh09fXp4fn6eKzU2XsoKUQjIdkBlyZVn4c/iVkxoxzrNXL9xOdb5eHvrjTfe+OCDDyp4b2SQm6F/bgtLu2pHA/5N0L0mgA0S6Rm0XC4f//jxixdnceNKBhGR2L567eaWYRoEoJ/0aK95Md+wRpQAHmw7kACggSG6WCwODg5u7u9vcM9XaRCF9+3jvaicYN15rcfWVzDIGz09ff74x48vLi4A9FseNzNLWZNB1KHqAIqDSMLq6mDK/pmOr6Q2ly+qqsMw/Le//e8H9w4azYRalNow9+AimUxaxCsVa9KR2/Kq0P' +
-            'e4vcYz4MmTJ89+8YtCrU4MPKew2h0SU6QEk4yk850oWnmtk0EEjHmmi/VRS/q5CMaM8vr16++/957PeRBitdhVCzNcI7qAux+nZ4/UsQxTEXZQdH5+/tGPPn7x4oWq5GxwQQ+NhWXJoDjxhe2Ui6G0HBPWRCTSlpo7BCkTs+olgG4e0rkZGsfJaVLVxWLx8H8+XMznyEmFcCydEoW+ELKy8cqSGLCBy0hccxnYEqHly1UObxPuCMfydj91Bc2LDTSrs/CqI2EGYFMtmOx+S2VhSUZZ4u9QLQS2A1QEwM7O3BffrYWF6YIzBdkQ2uGK53WNWzViUl2ulo++/2i5XKLUQNOOTIQiYqbEakstxRb2JINIbXkU5wrGXGmPbAgZJdcVMOl3y0Ly/M3lWJ9VEkrTMJ84Qu0WW1MutfBV7dO3+ue7y5RTAf3d73//6PuPVqsl+c4aSiKnjdTRZgUvky3/t+zUj09TmjBFNcc5W31suyL8RCHKw3B8N81yufz7//X3v/vd79aGWWq36zqbVW2DHu0fs5ps7GktjdByufqHH/zgjy//qLEsNVdC2+4dKqXV2oCtb23jL1LPq+UZlUrPRAqDc7N0ZVY04SqtfpKJEuHi4vyjH320XC2nbGj+qTXXfdW7+ahBxsq9CMqT0cvl8tH3H33++YWI5BkYuTbQ9rvVrQGq+SFsIltTtYAmFwnDViSWJasEMCnn+o/c/7O+oc46U4UgVGno9GK1XD569Gi5XPYimVgdHGK1vFt4qCV8d0ii6JuwXK3MnAVj2TuWg9dRR49gYhE086BKNVMloE1Lw/fca9jWZJ10YAqocrrpZ2RYkQAUi7EZ2u78L1qtlo8ePfr88/PKlLoDeO3qgc9/ty4pC+SE8/PzR99/9PLly/SheS5FwWYQkc2419XubaRxpd1pH0O0fQwASGEnvqgqg9HtAnEzti0yOQoiUoIyUZyhkZdt0lwtlx9/9BEZpqjz28ZNayq5XpmncF' +
-            'XFLJxzH/3wRy9Xf6y8HmjI0AwA0WDrEicupfQ2ilzqeGknGZF6WFwpKkd0qdoJQxOZNlQKh1/QqY1wcpiGxoJGIrx4cfbkyZP1Nifkls/Ni657Hvv+8PDwsxcv1llsM+vWRJtij73y651edeUzTCozbh5RMAqUZ4PtpFcdY3NGxKDEqcLKUKaBZmzbHdqPeZA2tl8cPXt+ejrhjmqBmG5uVpsfy3XVoYBQHP/yl08PnyLO74PFYoCq2lqvcpnDFekPb/SKDw2qJJ1c/SQT1VFVBlsK3JxixIe2/WCC9iJQ6jCrEqL98QLsx9IN7tmZ/vHx4+VyOZGSa3QN+Vro539NnOZqtfrZz35GsRLOVDt3E0a/1K3QoC4di3NrbPd4t0esrSVXEEFE2OM7AdFA4ExG1NYMeZ1ogLRtjxZIqCorsfp+USJqG/YNgFiVxM4bEugXX3zx+PHjwh7TIMkAoxO8OlxXL2aG98OPP1q+XNnhlVHbU8VIZPu8eojlmalJ4qwL2z2vY/BAea7MyGz5w8DMEWUrQCSxtb1qR9TSNFfJUnDHuCCSu+3HtSCgk7wSPvvss2fPnrW/C+iU9xqUhsdsPvjw6WGNP3PxYI58EkOPl7a6su2P7i9XpWyHSlo7jgrf9MJ22EoXCnpQBLYzUbrWc9QM2DlDMqqVckQYHnl5A/aGuK89PDy06JGyJOQA07kYNbCpnRKtVsunh/88EA/E0QsZPtr+2BybBXuqo51t1vsZCtJtpKNvs40f5pkveGYCD75OkcrG4Xq5JKk75mEiCe9U1SBIPaPoQIqIbLnkxcXF4x//GBQ1HXRtBkpXvrTf//Tkie10HscxZ2JUDZvrTrHkVAviaqSS4p1koFouS/dlHNk2/ChBMJop+k876ETJjpKFxQm2J3qwmDsxi5RFkpUAQCqx9wgqlyFJefHrs+enzwGN0zO7ALlX0XYdnxx/+umnNEQXwyw5q6o0wE5wycsLOHYOCakhDhHleY' +
-            'l+PlnQ7D9gUX/G9rt2WpMMrla9LoHq3aoEXC6bAmWeDRqbEYnoyZMn5+clvHY3EcoySU0IAA4/+aSBURwYpKWGV0liP/CttNLTHF4vM7/UJQGVPd0A2zG/REqkdi6inT4QN4nIj5AzjTBtyvOk1eq4QhAdiAEWOy3DXBwx+dFhY+44U8Ly5erZs6OOhZG71KSMfFETjk9OVqs/QuPssHIsj/q2d/LN3d6bbXGiyBNINY7osfMa1N8gZtsCh/YT3AQrnNNpqE2iVV9SPnX/Uy1RZ0K/rlP+LkesF/WaOvNL7Jm69vhj7S2Xq6dPn5psiwV1dfjCL53NZgapWYGwr7rTZXoie4WX2jjXpzUOJwzAUyUZ9dJ0x2S1TpOI5L4FirMw86AuWPBZKl7G988vzn9+dGQG1ZG9hkLHx79cLv+/siprFKFaO86XEYhzPBKnS17aVMPxxVro9mQ0r+L+SkeCdBhERDU7GwbWmKrLYwZrpBCPDQlSE1fIE9nUkA84enbUIdHkCh6d/Mux1vSvBPf5mW2XUwQ1Odqr9LoqeK24Z+SVLbTxiHSFIiWMowBkx1dmKXNUyd0L1p4hgB/22icc4eDayKwr1ZGBL87PjwyJJl6rGNrxyfFqtWImUmYvALIhZh9JiOrY7acFkba9uDl7wxgMNEnZbFbgAbMQyI9pkIx789gYSz1aME7M5Afx+AL9DZYfR12lrDJCSe5svPKb4+NjoAt2Jn8eHh5WfcmcK1WDqK3+Sl02SiZHLayTRJlzAwrGpm85lMrYDFX4nP5ovPAT4jTP/kIjCAZAZZ6kqnRV2u6ID3CcKc4vly9fnL3oyon+Mgg4PT19+XIVMS6SNZE65MYJrsgdWqyqY0bYSR5EGWTxkZNqft1nt9rJs65B9kdh9rQqmNdEbtXOq21TXwN2ppe0oz4J4JNPPuk1p0XVx8fH6TRblWf0//7AQJB51o7RXkvNxnL8Y3XKG7V7ctOMI3IQ0ZhBHcAzRV' +
-            'ffWX/Z74jmUXTrWFjY5xFtHMLWziFSwovffHZ+cR4ZmbMGhOVydfr/Ts1DEClIBaPIZZFfqFU4xzykzjggInZOq/HOUQk6qV4nUJLC4MlwygWAUB8ugOLlPO6CgGwxFSo9yEQyhcrW/bpw0iKOT46zn+AQXrx4kTcA+LKuiVeMRLQ5nYghM5LOqvNGEebYs5HJk8FysjMiRxHBCBKCHUQIAH7y+ERFs3UpR20nFjYbDIBnxH9+ArZKQtJ6evo8JZpx0Mnx/4Hk+fmceUGG4wz1gmHQlrGPqsLOktI4KiKQiJllHHWU/CFVHS8l0heL4DJA4RSy/VscZ5V2A51kSnLBGjUFro4jPgAS/jGqSxM3d3Z2dn5+UaeqV6vl2dlZfdi/KuR5Hk1NHimk6jqqXsOKpakvDg5O8ETq4cVKZEl21LglbDqa9O0ANCOl7vSdzWZZu0SEHhmJ+JKPPINXAIniKwXeNBPW0+e/qkHlr399FosuOs/o+Q3Zrv8WYRANFHBhg7RgbRgGK/INQwisnAOJQC6jqtkBtUUZXcmiqFLnsCYHu6U2orr52NTpZxFwpyP5n3mkVKuSEuHs12f1zumnz52zExQzhBRHfrMA0qYmteWkTbU7T7o9Foe4V12bqN5MR2Do4y772ghXVgiYRUfyVRCggWNWgDRiVq0g2tkp217+MtfsJ+ygDOn09LQG0L/77W+pLSrxBIIpAMGgnAReEgUgtovFqLLsUMNSfAkCQ3IFK1GS6px3LhtIj83iiHydXWVt8wHBzDijwqcE8j9eco+WI1ZLm6zM7RP2Whxfrzit34svzn/ykyfLPyzPz8+f/OTJ6uVLNLrF9qsbd2owXSWan6U73q47YXrioeqVEF4fBvBvwZvfB2giLLAAAAAASUVORK5CYII=';
-
-        // Core Constants
-        const MR_ALPHA_THRESHOLD = 0.001;
-        const MR_MAX_ALPHA = 0.99;
-        const MR_LOGO_VALUE = 255;
-
-        // Assets and Engine
-        class GeminiWatermarkEngine {
-            constructor(bg48, bg96) {
-                this.bg48 = bg48;
-                this.bg96 = bg96;
-                this.alphaMaps = {};
-            }
-
-            static async create() {
-                const loadImg = (dataUrl) => new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = () => resolve(img);
-                    img.onerror = () => reject(new Error(`無法解析背景數據`));
-                    img.src = dataUrl;
-                });
-                const [bg48, bg96] = await Promise.all([loadImg(MR_BG_48_DATA), loadImg(MR_BG_96_DATA)]);
-                return new GeminiWatermarkEngine(bg48, bg96);
-            }
-
-            async getAlphaMap(size) {
-                if (this.alphaMaps[size]) return this.alphaMaps[size];
-                const bgImage = size === 48 ? this.bg48 : this.bg96;
-                const canvas = document.createElement('canvas');
-                canvas.width = size;
-                canvas.height = size;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(bgImage, 0, 0);
-                const data = ctx.getImageData(0, 0, size, size).data;
-                const alphaMap = new Float32Array(size * size);
-                for (let i = 0; i < alphaMap.length; i++) {
-                    alphaMap[i] = Math.max(data[i * 4], data[i * 4 + 1], data[i * 4 + 2]) / 255.0;
-                }
-                this.alphaMaps[size] = alphaMap;
-                return alphaMap;
-            }
-
-            detectConfig(w, h) {
-                return (w > 1024 && h > 1024) ? { size: 96, mr: 64, mb: 64 } : { size: 48, mr: 32, mb: 32 };
-            }
-
-            async removeWatermark(canvas) {
-                const ctx = canvas.getContext('2d');
-                const w = canvas.width;
-                const h = canvas.height;
-                const config = this.detectConfig(w, h);
-                const alphaMap = await this.getAlphaMap(config.size);
-                const imgData = ctx.getImageData(0, 0, w, h);
-
-                const startX = w - config.mr - config.size;
-                const startY = h - config.mb - config.size;
-
-                for (let row = 0; row < config.size; row++) {
-                    for (let col = 0; col < config.size; col++) {
-                        const imgIdx = ((startY + row) * w + (startX + col)) * 4;
-                        const alphaIdx = row * config.size + col;
-                        let alpha = alphaMap[alphaIdx];
-                        if (alpha < MR_ALPHA_THRESHOLD) continue;
-                        alpha = Math.min(alpha, MR_MAX_ALPHA);
-                        const oneMinusAlpha = 1.0 - alpha;
-                        for (let c = 0; c < 3; c++) {
-                            const val = imgData.data[imgIdx + c];
-                            const original = (val - alpha * MR_LOGO_VALUE) / oneMinusAlpha;
-                            imgData.data[imgIdx + c] = Math.max(0, Math.min(255, Math.round(original)));
-                        }
-                    }
-                }
-                ctx.putImageData(imgData, 0, 0);
-            }
-        }
-
-        // Image Upscaler logic
-        async function mrConditionalUpscale(image) {
-            const w = image.width;
-            const h = image.height;
-            const ratio = w / h;
-            let targetW = w, targetH = h;
-            let upscaled = false;
-
-            const is4_3 = Math.abs(ratio - 4 / 3) < 0.05 || Math.abs(ratio - 3 / 4) < 0.05;
-            const is16_9 = Math.abs(ratio - 16 / 9) < 0.05 || Math.abs(ratio - 9 / 16) < 0.05;
-
-            if (is4_3 && Math.max(w, h) < 2400) {
-                const scale = 2400 / Math.max(w, h);
-                targetW = Math.round(w * scale);
-                targetH = Math.round(h * scale);
-                upscaled = true;
-            } else if (is16_9 && Math.max(w, h) < 1376) {
-                const scale = 1376 / Math.max(w, h);
-                targetW = Math.round(w * scale);
-                targetH = Math.round(h * scale);
-                upscaled = true;
-            }
-
-            const canvas = document.createElement('canvas');
-            canvas.width = targetW;
-            canvas.height = targetH;
-            const ctx = canvas.getContext('2d');
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            ctx.drawImage(image, 0, 0, targetW, targetH);
-            return { canvas, upscaled };
-        }
-
-        // Flood Fill
-        function mrFloodFill(data, maskData, x, y, width, height, tolerance, r, g, b, a) {
-            const stack = [[x, y]];
-            const startIdx = (y * width + x) * 4;
-            const startR = data[startIdx], startG = data[startIdx + 1], startB = data[startIdx + 2];
-            const visited = new Uint8Array(width * height);
-
-            while (stack.length > 0) {
-                const [cx, cy] = stack.pop();
-                const idx = cy * width + cx;
-                if (visited[idx]) continue;
-                visited[idx] = 1;
-
-                const pIdx = idx * 4;
-                const dr = data[pIdx] - startR, dg = data[pIdx + 1] - startG, db = data[pIdx + 2] - startB;
-                if (Math.sqrt(dr * dr + dg * dg + db * db) <= tolerance) {
-                    maskData[pIdx] = r; maskData[pIdx + 1] = g; maskData[pIdx + 2] = b; maskData[pIdx + 3] = a;
-                    if (cx > 0) stack.push([cx - 1, cy]);
-                    if (cx < width - 1) stack.push([cx + 1, cy]);
-                    if (cy > 0) stack.push([cx, cy - 1]);
-                    if (cy < height - 1) stack.push([cx, cy + 1]);
-                }
-            }
-        }
-
-        // Inpainting (simplified patch-based)
-        async function mrInpaint(ctx, maskCtx, width, height, onProgress) {
-            const imgData = ctx.getImageData(0, 0, width, height);
-            const maskData = maskCtx.getImageData(0, 0, width, height);
-            const pixels = imgData.data;
-            let isMasked = new Uint8Array(width * height);
-            let maskedCount = 0;
-
-            for (let i = 0; i < width * height; i++) {
-                if (maskData.data[i * 4 + 3] > 50) { isMasked[i] = 1; maskedCount++; }
-            }
-
-            // Start with mask dilation to cover edges
-            const dilatedMask = new Uint8Array(width * height);
-            const dilationRadius = 2; // Expand mask by 2px
-            maskedCount = 0; // Recount after dilation
-
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    const idx = y * width + x;
-                    if (isMasked[idx] === 1) {
-                        dilatedMask[idx] = 1;
-                        maskedCount++;
-                        continue;
-                    }
-                    // Check neighbors
-                    let isNearMask = false;
-                    checkNeighbor:
-                    for (let dy = -dilationRadius; dy <= dilationRadius; dy++) {
-                        for (let dx = -dilationRadius; dx <= dilationRadius; dx++) {
-                            const ny = y + dy, nx = x + dx;
-                            if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
-                                if (isMasked[ny * width + nx] === 1) {
-                                    isNearMask = true;
-                                    break checkNeighbor;
-                                }
-                            }
-                        }
-                    }
-                    if (isNearMask) {
-                        dilatedMask[idx] = 1;
-                        maskedCount++;
-                    }
-                }
-            }
-            isMasked = dilatedMask; // Use dilated mask for processing
-
-            console.log(`[Inpaint Debug] Masked Pixels: ${maskedCount}`);
-            if (maskedCount === 0) {
-                alert("錯誤：沒有檢測到選取範圍！請確保您已經使用魔法棒圈選了浮水印。");
-                return;
-            }
-
-            const initialCount = maskedCount;
-            const patchRadius = 3;
-            // Limit search radius to improve speed/relevance
-            const searchRadius = Math.min(Math.min(width, height) / 2, 200);
-
-            while (maskedCount > 0) {
-                const contour = [];
-                for (let y = 0; y < height; y++) {
-                    for (let x = 0; x < width; x++) {
-                        const idx = y * width + x;
-                        if (isMasked[idx] === 1) {
-                            if ((x > 0 && isMasked[idx - 1] === 0) || (x < width - 1 && isMasked[idx + 1] === 0) ||
-                                (y > 0 && isMasked[idx - width] === 0) || (y < height - 1 && isMasked[idx + width] === 0)) {
-                                contour.push({ x, y });
-                            }
-                        }
-                    }
-                }
-                if (contour.length === 0) break;
-
-                for (const p of contour) {
-                    let bestScore = Infinity;
-                    let bR = 0, bG = 0, bB = 0;
-
-                    // Increased sampling for better quality (15 -> 50)
-                    // If still poor, we can go higher, but 50 is a good balance for browser JS
-                    for (let s = 0; s < 50; s++) {
-                        const a = Math.random() * Math.PI * 2;
-                        const d = Math.random() * searchRadius;
-                        const sx = Math.floor(p.x + Math.cos(a) * d), sy = Math.floor(p.y + Math.sin(a) * d);
-                        if (sx < patchRadius || sx >= width - patchRadius || sy < patchRadius || sy >= height - patchRadius) continue;
-                        if (isMasked[sy * width + sx] === 1) continue;
-
-                        let score = 0;
-                        let validPixels = 0;
-                        for (let py = -patchRadius; py <= patchRadius; py += 2) {
-                            for (let px = -patchRadius; px <= patchRadius; px += 2) {
-                                // Target pixel coordinates relative to P (boundary point)
-                                const ty = p.y + py;
-                                const tx = p.x + px;
-
-                                // Source pixel coordinates relative to S (search point)
-                                const sy_ = sy + py;
-                                const sx_ = sx + px;
-
-                                // Bounds check for target
-                                if (tx < 0 || tx >= width || ty < 0 || ty >= height) continue;
-
-                                // KEY FIX: Only compare against known pixels (unmasked)
-                                // If target pixel is masked (part of watermark), we don't know its color, so skip it.
-                                if (isMasked[ty * width + tx] === 1) continue;
-
-                                const sIdx = (sy_ * width + sx_) * 4;
-                                const tIdx = (ty * width + tx) * 4;
-
-                                const dr = pixels[tIdx] - pixels[sIdx];
-                                const dg = pixels[tIdx + 1] - pixels[sIdx + 1];
-                                const db = pixels[tIdx + 2] - pixels[sIdx + 2];
-                                score += dr * dr + dg * dg + db * db;
-                                validPixels++;
-                            }
-                        }
-                        // Normalize score by valid pixels to allow fair comparison
-                        if (validPixels > 0) {
-                            score /= validPixels;
-                        } else {
-                            score = Infinity; // No valid matching context
-                        }
-                        if (score < bestScore) { bestScore = score; const idx = (sy * width + sx) * 4; bR = pixels[idx]; bG = pixels[idx + 1]; bB = pixels[idx + 2]; }
-                    }
-                    if (bestScore !== Infinity) {
-                        const idx = (p.y * width + p.x) * 4; pixels[idx] = bR; pixels[idx + 1] = bG; pixels[idx + 2] = bB;
-                        isMasked[p.y * width + p.x] = 0; maskedCount--;
-                    }
-                }
-                ctx.putImageData(imgData, 0, 0);
-                onProgress(Math.round(((initialCount - maskedCount) / initialCount) * 100));
-                await new Promise(r => setTimeout(r, 0));
-            }
-        }
-
-        function mrRefreshCanvas() {
-            if (!mrOriginalImage) return;
-            const wrap = document.getElementById('mrCanvasWrapper');
-            const inner = document.getElementById('mrCanvasInner');
-            const empty = document.getElementById('mrEmptyState');
-
-            empty.style.display = 'none';
-            inner.style.display = 'inline-block'; // Allow wrapper to shrink to fit content
-            mrCurrentCanvas.style.display = 'block';
-
-            // Always redraw original image to ensure we have a clean state (Undo/Reset logic)
-            mrCurrentCanvas.width = mrOriginalImage.width;
-            mrCurrentCanvas.height = mrOriginalImage.height;
-            const ctx = mrCurrentCanvas.getContext('2d');
-            ctx.drawImage(mrOriginalImage, 0, 0);
-
-            if (!mrMaskCanvas) {
-                mrMaskCanvas = document.createElement('canvas');
-                mrMaskCanvas.id = 'mrMaskCanvas';
-                inner.appendChild(mrMaskCanvas); // Append to INNER wrapper
-                mrMaskCanvas.style.position = 'absolute';
-                mrMaskCanvas.style.top = '0';
-                mrMaskCanvas.style.left = '0';
-                mrMaskCanvas.style.width = '100%'; // Match rendered size of mrCanvas
-                mrMaskCanvas.style.height = '100%';
-                mrMaskCanvas.style.pointerEvents = 'none'; // Click-through
-                mrMaskCanvas.width = mrCurrentCanvas.width;
-                mrMaskCanvas.height = mrCurrentCanvas.height;
-
-                // Event Handling
-                mrCurrentCanvas.addEventListener('mousedown', (e) => {
-                    if (mrIsProcessing || document.getElementById('mrGeminiMode').checked) return;
-                    const rect = mrCurrentCanvas.getBoundingClientRect();
-                    const scale = mrCurrentCanvas.width / rect.width;
-                    const x = Math.floor((e.clientX - rect.left) * scale);
-                    const y = Math.floor((e.clientY - rect.top) * scale);
-
-                    const ctx = mrCurrentCanvas.getContext('2d');
-                    const mCtx = mrMaskCanvas.getContext('2d');
-                    const imgData = ctx.getImageData(0, 0, mrCurrentCanvas.width, mrCurrentCanvas.height);
-                    const mData = mCtx.getImageData(0, 0, mrMaskCanvas.width, mrMaskCanvas.height);
-
-                    const tol = parseInt(document.getElementById('mrBrushSize').value);
-                    mrFloodFill(imgData.data, mData.data, x, y, mrCurrentCanvas.width, mrCurrentCanvas.height, tol, 255, 0, 0, 150);
-                    mCtx.putImageData(mData, 0, 0);
-                    mrAddToHistory();
-                });
-            }
-
-            // Always update mask canvas size to match current image
-            if (mrMaskCanvas) {
-                mrMaskCanvas.width = mrCurrentCanvas.width;
-                mrMaskCanvas.height = mrCurrentCanvas.height;
-            }
-            mrUpdateButtons();
-        }
-
-        function mrUpdateButtons() {
-            const hasImg = !!mrOriginalImage;
-            document.getElementById('mrProcessBtn').disabled = !hasImg || mrIsProcessing;
-            document.getElementById('mrDownloadBtn').disabled = !hasImg || mrIsProcessing;
-            const oneClickBtn = document.getElementById('mrOneClickBtn');
-            if (oneClickBtn) oneClickBtn.disabled = !hasImg || mrIsProcessing;
-            document.getElementById('mrBrushSizeGroup').style.display = document.getElementById('mrGeminiMode').checked ? 'none' : 'block';
-        }
-
-        function mrAddToHistory() {
-            const ctx = mrCurrentCanvas.getContext('2d');
-            const mCtx = mrMaskCanvas.getContext('2d');
-            const state = {
-                img: ctx.getImageData(0, 0, mrCurrentCanvas.width, mrCurrentCanvas.height),
-                mask: mCtx.getImageData(0, 0, mrMaskCanvas.width, mrMaskCanvas.height)
-            };
-            mrHistory = mrHistory.slice(0, mrHistoryIndex + 1);
-            mrHistory.push(state);
-            mrHistoryIndex++;
-        }
-
-        // External Hook for file upload
-        window.mrLoadImage = async (file) => {
-            const img = await loadImageFile(file);
-
-            mrOriginalImage = img;
-
-            // Critical: Reset History and State when loading new image
-            mrHistory = [];
-            mrHistoryIndex = -1;
-            mrIsProcessing = false;
-
-            mrCurrentCanvas.width = 0; // Trigger redraw
-            setMode('magicRemover');
-            mrRefreshCanvas();
-        };
-
-        // Event Listeners Initialization
-        document.getElementById('mrGeminiMode').addEventListener('change', mrUpdateButtons);
-        document.getElementById('mrBrushSize').addEventListener('input', (e) => document.getElementById('mrBrushSizeVal').textContent = e.target.value);
-
-        // New UI Event Listeners
-        const mrFileInput = document.getElementById('mrFileInput');
-        const mrEmptyState = document.getElementById('mrEmptyState');
-        const mrCloseBtn = document.getElementById('mrCloseBtn');
-
-        mrEmptyState.addEventListener('click', () => mrFileInput.click());
-        mrFileInput.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files[0]) {
-                mrLoadImage(e.target.files[0]);
-                mrFileInput.value = ''; // Reset input to allow re-selecting same file
-            }
-        });
-
-        // Use same reset logic for Close Button
-        const mrPerformReset = () => {
-            mrOriginalImage = null;
-            mrHistory = [];
-            mrHistoryIndex = -1;
-            mrIsProcessing = false;
-
-            mrEmptyState.style.display = 'flex'; // Use flex to center content
-            document.getElementById('mrCanvasInner').style.display = 'none';
-            document.getElementById('mrCanvas').style.display = 'none';
-
-            if (mrMaskCanvas) {
-                const mCtx = mrMaskCanvas.getContext('2d');
-                mCtx.clearRect(0, 0, mrMaskCanvas.width, mrMaskCanvas.height);
-            }
-
-            mrUpdateButtons();
-        };
-
-        mrCloseBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent bubbling if needed
-            mrPerformReset();
-        });
-
-        // Reset/Undo Button Logic
-        document.getElementById('mrResetImageBtn').addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (confirm('確定要復原到初始狀態嗎？(目前的編輯將會遺失)')) {
-                mrRefreshCanvas(); // Re-draws original image and clears mask
-            }
-        });
-
-        // Loophole: We removed mrResetBtn/Undo/Clear from DOM. 
-        // If we want to support Undo/Clear in the future, we need to add them back to UI.
-        // For now, we remove the listeners to avoid errors.
-
-        // Batch Mode Logic
-        const mrBatchMode = document.getElementById('mrBatchMode');
-        const mrBatchContainer = document.getElementById('mrBatchContainer');
-        const mrCanvasWrapper = document.getElementById('mrCanvasWrapper');
-        const mrBatchInput = document.getElementById('mrBatchInput');
-        const mrBatchDropZone = document.getElementById('mrBatchDropZone');
-        const mrBatchStartBtn = document.getElementById('mrBatchStartBtn');
-        const mrBatchDownloadBtn = document.getElementById('mrBatchDownloadBtn');
-        const mrBatchClearBtn = document.getElementById('mrBatchClearBtn');
-
-        // Batch File Handling
-        window.updateBatchStats = () => {
-            const files = window.mrBatchFiles || [];
-            document.getElementById('mrBatchTotalCount').textContent = files.length;
-            mrBatchStartBtn.disabled = files.length === 0 || mrIsProcessing;
-            mrBatchDownloadBtn.disabled = true;
-        };
-
-        window.updateBatchStats(); // Init
-
-        mrBatchMode.addEventListener('change', (e) => {
-            const isBatch = e.target.checked;
-            mrBatchContainer.style.display = isBatch ? 'block' : 'none';
-            mrCanvasWrapper.style.display = isBatch ? 'none' : 'flex';
-
-            // Disable Single Image controls in Batch Mode
-            document.getElementById('mrProcessBtn').parentElement.style.display = isBatch ? 'none' : 'flex';
-
-            // Auto-check Gemini mode when entering Batch, but don't disable (allow interaction for feedback)
-            if (isBatch) {
-                document.getElementById('mrGeminiMode').checked = true;
-                mrUpdateButtons();
-            }
-        });
-
-        // Enforce Gemini Mode in Batch with Feedback
-        document.getElementById('mrGeminiMode').addEventListener('click', (e) => {
-            if (document.getElementById('mrBatchMode').checked && !e.target.checked) {
-                // User tried to uncheck Gemini while in Batch
-                e.preventDefault(); // Prevent unchecking if possible (click event)
-                e.target.checked = true; // Force back
-                alert("目前「批次處理」僅支援 Gemini 專用模式，無法切換至舊版演算法。");
-            }
-        });
-
-        // Batch File Handling
-        window.renderBatchList = () => {
-            mrBatchDropZone.innerHTML = '';
-            const files = window.mrBatchFiles || [];
-
-            if (files.length === 0) {
-                // Empty State
-                mrBatchDropZone.innerHTML = `
-                    <div style="font-size: 3rem; opacity: 0.8; margin-bottom: 15px;">📤</div>
-                    <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 8px;">拖放圖片到此處</div>
-                    <div style="opacity: 0.8; font-size: 0.9rem;">或點擊左側「選擇圖片」按鈕上傳</div>
-                    <div style="opacity: 0.6; font-size: 0.8rem; margin-top: 5px;">支援 PNG、JPG 格式，可一次上傳多張</div>
-                 `;
-                mrBatchDropZone.style.display = 'flex';
-                mrBatchDropZone.className = '';
-            } else {
-                // Grid State
-                mrBatchDropZone.style.display = 'block';
-                const grid = document.createElement('div');
-                grid.className = 'mr-batch-grid';
-
-                files.forEach((file, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'mr-batch-item';
-                    item.id = `batch-item-${index}`;
-
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = item.querySelector('img');
-                        if (img) img.src = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
-
-                    item.innerHTML = `
-                        <img src="" alt="preview">
-                        <span class="mr-batch-badge" id="badge-${index}">等待中</span>
-                        <div class="mr-batch-delete" onclick="removeBatchFile(${index})">✕</div>
-                     `;
-                    grid.appendChild(item);
-                });
-                mrBatchDropZone.appendChild(grid);
-            }
-        };
-
-        // Global function for inline onclick
-        window.removeBatchFile = (index) => {
-            if (mrIsProcessing) return;
-            if (window.mrBatchFiles) {
-                window.mrBatchFiles.splice(index, 1);
-                window.updateBatchStats();
-                window.renderBatchList();
-            }
-        };
-
-        // Global mrBatchFiles to prevent scope issues
-        window.mrBatchFiles = window.mrBatchFiles || [];
-
-        // Handle File Input Selection
-        mrBatchInput.addEventListener('change', (e) => {
-            const files = e.target.files;
-
-            try {
-                if (files && files.length > 0) {
-                    const newFiles = Array.from(files);
-
-                    // Use global variable
-                    window.mrBatchFiles = [...window.mrBatchFiles, ...newFiles];
-
-                    window.updateBatchStats();
-                    window.renderBatchList();
-                }
-            } catch (err) {
-                alert("Error: " + err.message);
-            } finally {
-                mrBatchInput.value = '';
-            }
-        });
-
-        // Batch Drag and Drop Implementation
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            mrBatchDropZone.addEventListener(eventName, preventDefaults, false);
-        });
-
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        mrBatchDropZone.addEventListener('dragover', () => {
-            mrBatchDropZone.style.background = 'rgba(255,255,255,0.1)';
-            mrBatchDropZone.style.border = '2px dashed #fff';
-        });
-
-        mrBatchDropZone.addEventListener('dragleave', () => {
-            mrBatchDropZone.style.background = 'transparent';
-            mrBatchDropZone.style.border = '2px dashed rgba(255,255,255,0.3)';
-        });
-
-        mrBatchDropZone.addEventListener('drop', (e) => {
-            mrBatchDropZone.style.background = 'transparent';
-            mrBatchDropZone.style.border = '2px dashed rgba(255,255,255,0.3)';
-
-            const dt = e.dataTransfer;
-            const files = dt.files;
-
-            if (files && files.length > 0) {
-                // Filter only images
-                const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
-                if (imageFiles.length > 0) {
-                    window.mrBatchFiles = [...window.mrBatchFiles, ...imageFiles];
-                    window.updateBatchStats();
-                    window.renderBatchList();
-                } else {
-                    alert("請只拖放圖片檔案 (JPG, PNG)");
-                }
-            }
-        });
-
-        mrBatchClearBtn.addEventListener('click', () => {
-            window.mrBatchFiles = [];
-            window.updateBatchStats();
-            window.renderBatchList();
-            document.getElementById('mrBatchProcessedCount').textContent = 0;
-            document.getElementById('mrBatchSuccessCount').textContent = 0;
-        });
-
-        // Batch Processing Logic with JSZip
-        window.mrBatchZip = null;
-
-        // Global V3 Batch Handler - Cache Buster
-        window.mrStartBatchV3 = async () => {
-            const files = window.mrBatchFiles || [];
-            if (mrIsProcessing || files.length === 0) return;
-
-            mrIsProcessing = true;
-            mrBatchStartBtn.disabled = true;
-            mrBatchDownloadBtn.disabled = true;
-            window.mrBatchZip = new JSZip();
-
-            let processed = 0;
-            let success = 0;
-            const total = files.length;
-
-            if (!mrEngine) {
-                try {
-                    mrEngine = await GeminiWatermarkEngine.create();
-                } catch (e) {
-                    alert("引擎初始化失敗: " + e.message);
-                    mrIsProcessing = false;
-                    window.updateBatchStats();
-                    return;
-                }
-            }
-
-            // Safe Timestamp
-            const now = new Date();
-            const batchTimestamp = formatDateTime(now);
-
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const badge = document.getElementById(`badge-${i}`);
-                if (badge) {
-                    badge.textContent = "處理中...";
-                    badge.style.background = "#ed8936";
-                }
-
-                try {
-                    processed++;
-                    document.getElementById('mrBatchProcessedCount').textContent = `${processed} / ${total}`;
-
-                    const img = await loadImageFile(file);
-
-                    const { canvas } = await mrConditionalUpscale(img);
-                    await mrEngine.removeWatermark(canvas);
-
-                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', getSelectedJpegQuality()));
-
-                    // V3 Naming
-                    const seq = (i + 1).toString().padStart(3, '0');
-                    const fileName = `${batchTimestamp}_${seq}.jpg`;
-
-                    window.mrBatchZip.file(fileName, blob);
-
-                    success++;
-                    document.getElementById('mrBatchSuccessCount').textContent = success;
-
-                    if (badge) {
-                        badge.textContent = "完成";
-                        badge.className = "mr-batch-badge success";
-                    }
-                } catch (err) {
-                    console.error(err);
-                    if (badge) {
-                        badge.textContent = "失敗";
-                        badge.style.background = "#e53e3e";
-                    }
-                }
-            }
-
-            mrIsProcessing = false;
-            window.updateBatchStats();
-            mrBatchStartBtn.disabled = false;
-            mrBatchDownloadBtn.disabled = false;
-            alert("批次處理完成 (V3-Final)！請點擊「下載全部」按鈕。");
-        };
-
-        // Aggressively assign onclick
-        mrBatchStartBtn.onclick = window.mrStartBatchV3;
-        console.log("V3 Batch Handler Attached");
-
-        // Global Download Handler to bypass listener issues
-        window.mrDownloadAll = () => {
-            if (!window.mrBatchZip) {
-                alert("錯誤：找不到壓縮檔，請先執行批次處理。");
-                return;
-            }
-
-            const zipObj = window.mrBatchZip;
-            const count = Object.keys(zipObj.files).length;
-
-            if (count === 0) {
-                alert("錯誤：壓縮檔是空的！");
-                return;
-            }
-
-            const btn = document.getElementById('mrBatchDownloadBtn');
-            if (btn) btn.textContent = "⏳ 打包中...";
-
-            zipObj.generateAsync({ type: "blob" }).then(function (content) {
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(content);
-
-                link.download = `${formatDateTime()}.zip`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-
-                if (btn) btn.textContent = "📥 下載全部 (ZIP)";
-            }).catch(function (err) {
-                alert("下載失敗: " + err.message);
-                if (btn) btn.textContent = "📥 下載全部 (ZIP)";
-            });
-        };
-
-        // Assign to button explicitly
-        const dlBtn = document.getElementById('mrBatchDownloadBtn');
-        if (dlBtn) {
-            dlBtn.onclick = window.mrDownloadAll;
-            console.log("Download handler attached via onclick");
-        } else {
-            console.error("Critical: mrBatchDownloadBtn not found");
-        }
-
-        document.getElementById('mrProcessBtn').addEventListener('click', async () => {
-            if (mrIsProcessing || !mrOriginalImage) return;
-            mrIsProcessing = true;
-            mrUpdateButtons();
-
-            const prog = document.getElementById('mrProgressContainer');
-            const fill = document.getElementById('mrProgressFill');
-            const val = document.getElementById('mrProgressVal');
-            prog.style.display = 'block';
-
-            const onProgress = (p) => { fill.style.width = p + '%'; val.textContent = p; };
-
-            try {
-                if (document.getElementById('mrGeminiMode').checked) {
-                    onProgress(10);
-                    if (!mrEngine) mrEngine = await GeminiWatermarkEngine.create();
-                    onProgress(30);
-                    const { canvas, upscaled } = await mrConditionalUpscale(mrOriginalImage);
-                    onProgress(60);
-                    await mrEngine.removeWatermark(canvas);
-                    onProgress(100);
-
-                    mrCurrentCanvas.width = canvas.width;
-                    mrCurrentCanvas.height = canvas.height;
-                    mrCurrentCanvas.getContext('2d').drawImage(canvas, 0, 0);
-                } else {
-                    const ctx = mrCurrentCanvas.getContext('2d');
-                    const mCtx = mrMaskCanvas.getContext('2d');
-                    await mrInpaint(ctx, mCtx, mrCurrentCanvas.width, mrCurrentCanvas.height, onProgress);
-                    mCtx.clearRect(0, 0, mrMaskCanvas.width, mrMaskCanvas.height);
-                }
-                alert('處理完成！');
-            } catch (e) {
-                alert('錯誤: ' + e.message);
-            } finally {
-                mrIsProcessing = false;
-                mrUpdateButtons();
-                setTimeout(() => prog.style.display = 'none', 2000);
-            }
-        });
-
-        document.getElementById('mrDownloadBtn').addEventListener('click', () => {
-            mrCurrentCanvas.toBlob((blob) => {
-                if (blob) saveAs(new File([blob], createImageFilename(), { type: 'image/jpeg' }));
-            }, 'image/jpeg', getSelectedJpegQuality());
-        });
-
-        /* =========================================
-           End Magic Remover Logic (v2)
            ========================================= */
 
         /* =========================================
