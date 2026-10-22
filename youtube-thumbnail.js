@@ -110,6 +110,10 @@
                     ctx.save(); ctx.globalAlpha = Number(opacity.value) / 100;
                     ctx.drawImage(logo, p.x, p.y, p.width, p.height); ctx.restore();
                 }
+                // Always draw the frame inside the output dimensions.
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(0.5, 0.5, size.width - 1, size.height - 1);
                 // Check export permissions before offering a download.
                 ctx.getImageData(0, 0, 1, 1);
                 renderedQuality = options.quality();
